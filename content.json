@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "site": {
+    "title": "Булочки & Тортики",
+    "subtitle": "Домашняя выпечка на заказ",
+    "background": {
+      "type": "gradient",
+      "solid": "#0b0b10",
+      "gradient": {
+        "from": "#0b0b10",
+        "to": "#1b1330",
+        "angle": 25
+      },
+      "imageDataUrl": null
+    }
+  },
+  "blocks": []
+}
+
+

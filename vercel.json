@@ -1,0 +1,15 @@
+{
+  "headers": [
+    {
+      "source": "/content.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    }
+  ]
+}
+
+
