@@ -174,6 +174,11 @@
             <option value="text">Текст</option>
             <option value="image">Фото</option>
             <option value="mixed">Текст + фото</option>
+            <option value="map">Карта</option>
+            <option value="button">Кнопка / ссылка</option>
+            <option value="contacts">Контакты</option>
+            <option value="divider">Разделитель</option>
+            <option value="spacer">Отступ</option>
           </select>
         </div>
 
@@ -188,6 +193,60 @@
             <input id="addImage" type="file" accept="image/*" />
           </label>
           <span class="miniText" id="addImageName">файл не выбран</span>
+        </div>
+
+        <div class="panelRow panelRow--col" id="addMapRow" hidden>
+          <div class="miniText">Карта работает без ключей через OpenStreetMap. Введите координаты.</div>
+          <div class="panelRow">
+            <label class="label" for="addMapLat">Широта</label>
+            <input class="input" id="addMapLat" type="number" step="0.000001" placeholder="55.751244" />
+          </div>
+          <div class="panelRow">
+            <label class="label" for="addMapLon">Долгота</label>
+            <input class="input" id="addMapLon" type="number" step="0.000001" placeholder="37.618423" />
+          </div>
+          <div class="panelRow">
+            <label class="label" for="addMapZoom">Зум</label>
+            <input class="input" id="addMapZoom" type="number" min="1" max="18" step="1" value="16" />
+          </div>
+        </div>
+
+        <div class="panelRow panelRow--col" id="addButtonRow" hidden>
+          <div class="panelRow">
+            <label class="label" for="addButtonLabel">Текст</label>
+            <input class="input" id="addButtonLabel" type="text" placeholder="Написать в WhatsApp" />
+          </div>
+          <div class="panelRow">
+            <label class="label" for="addButtonUrl">Ссылка</label>
+            <input class="input" id="addButtonUrl" type="text" placeholder="https://..." />
+          </div>
+          <div class="miniText">Можно вставлять `https://`, `tel:+7...`, `mailto:...`</div>
+        </div>
+
+        <div class="panelRow panelRow--col" id="addContactsRow" hidden>
+          <div class="panelRow">
+            <label class="label" for="addContactsTitle">Заголовок</label>
+            <input class="input" id="addContactsTitle" type="text" placeholder="Контакты" />
+          </div>
+          <div class="panelRow">
+            <label class="label" for="addContactsPhone">Телефон</label>
+            <input class="input" id="addContactsPhone" type="text" placeholder="+7..." />
+          </div>
+          <div class="panelRow">
+            <label class="label" for="addContactsAddress">Адрес</label>
+            <input class="input" id="addContactsAddress" type="text" placeholder="Город, улица..." />
+          </div>
+          <div class="panelRow">
+            <label class="label" for="addContactsInstagram">Instagram</label>
+            <input class="input" id="addContactsInstagram" type="text" placeholder="@username или ссылка" />
+          </div>
+        </div>
+
+        <div class="panelRow panelRow--col" id="addSpacerRow" hidden>
+          <div class="panelRow">
+            <label class="label" for="addSpacerHeight">Высота (px)</label>
+            <input class="input" id="addSpacerHeight" type="number" min="4" step="1" value="24" />
+          </div>
         </div>
 
         <div class="panelRow panelRow--actions">

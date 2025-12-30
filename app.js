@@ -10,7 +10,7 @@ const SAVED_CREDS_KEY = 'bakery.admin.creds.v1';
 /**
  * @typedef {'left'|'center'|'right'} TAlign
  * @typedef {'solid'|'gradient'|'image'} TBgType
- * @typedef {'text'|'image'|'mixed'|'grid'} TBlockType
+ * @typedef {'text'|'image'|'mixed'|'grid'|'map'|'button'|'contacts'|'divider'|'spacer'} TBlockType
  */
 
 /**
@@ -38,7 +38,11 @@ const SAVED_CREDS_KEY = 'bakery.admin.creds.v1';
  *  background: IBackground,
  *  text: { value: string, style: ITextStyle } | null,
  *  image: { src: string, alt: string } | null,
- *  grid: { cols: number, rows: number, cells: Array<IBlock | null> } | null
+ *  grid: { cols: number, rows: number, cells: Array<IBlock | null> } | null,
+ *  map: { lat: number, lon: number, zoom: number } | null,
+ *  button: { label: string, url: string } | null,
+ *  spacer: { height: number } | null,
+ *  contacts: { title: string, phone: string, address: string, instagram: string } | null
  * }} IBlock
  */
 
@@ -156,7 +160,17 @@ const normalizeBlock = raw => {
   if (!isObject(raw)) return null;
   /** @type {any} */ const b = raw;
   const type =
-    b.type === 'text' || b.type === 'image' || b.type === 'mixed' || b.type === 'grid' ? b.type : 'text';
+    b.type === 'text' ||
+    b.type === 'image' ||
+    b.type === 'mixed' ||
+    b.type === 'grid' ||
+    b.type === 'map' ||
+    b.type === 'button' ||
+    b.type === 'contacts' ||
+    b.type === 'divider' ||
+    b.type === 'spacer'
+      ? b.type
+      : 'text';
   const id = typeof b.id === 'string' ? b.id : uid();
   const align = b.align === 'left' || b.align === 'center' || b.align === 'right' ? b.align : 'left';
   const background = normalizeBackground(b.background, defaultBackground());
@@ -179,7 +193,32 @@ const normalizeBlock = raw => {
 
   const grid = isObject(b.grid) ? normalizeGrid(b.grid) : null;
 
-  return { id, type, align, background, text, image, grid };
+  const map =
+    isObject(b.map) &&
+    Number.isFinite(Number(b.map.lat)) &&
+    Number.isFinite(Number(b.map.lon)) &&
+    Number.isFinite(Number(b.map.zoom))
+      ? { lat: Number(b.map.lat), lon: Number(b.map.lon), zoom: Math.max(1, Math.min(18, Number(b.map.zoom))) }
+      : null;
+
+  const button =
+    isObject(b.button) && typeof b.button.label === 'string' && typeof b.button.url === 'string'
+      ? { label: b.button.label, url: b.button.url }
+      : null;
+
+  const spacer = isObject(b.spacer) && Number.isFinite(Number(b.spacer.height)) ? { height: Math.max(0, Number(b.spacer.height)) } : null;
+
+  const contacts =
+    isObject(b.contacts)
+      ? {
+          title: typeof b.contacts.title === 'string' ? b.contacts.title : 'Контакты',
+          phone: typeof b.contacts.phone === 'string' ? b.contacts.phone : '',
+          address: typeof b.contacts.address === 'string' ? b.contacts.address : '',
+          instagram: typeof b.contacts.instagram === 'string' ? b.contacts.instagram : '',
+        }
+      : null;
+
+  return { id, type, align, background, text, image, grid, map, button, spacer, contacts };
 };
 
 /** @param {any} g */
@@ -258,6 +297,20 @@ const els = {
   addImageRow: /** @type {HTMLDivElement} */ ($('#addImageRow')),
   addImage: /** @type {HTMLInputElement} */ ($('#addImage')),
   addImageName: /** @type {HTMLSpanElement} */ ($('#addImageName')),
+  addMapRow: /** @type {HTMLDivElement} */ ($('#addMapRow')),
+  addMapLat: /** @type {HTMLInputElement} */ ($('#addMapLat')),
+  addMapLon: /** @type {HTMLInputElement} */ ($('#addMapLon')),
+  addMapZoom: /** @type {HTMLInputElement} */ ($('#addMapZoom')),
+  addButtonRow: /** @type {HTMLDivElement} */ ($('#addButtonRow')),
+  addButtonLabel: /** @type {HTMLInputElement} */ ($('#addButtonLabel')),
+  addButtonUrl: /** @type {HTMLInputElement} */ ($('#addButtonUrl')),
+  addContactsRow: /** @type {HTMLDivElement} */ ($('#addContactsRow')),
+  addContactsTitle: /** @type {HTMLInputElement} */ ($('#addContactsTitle')),
+  addContactsPhone: /** @type {HTMLInputElement} */ ($('#addContactsPhone')),
+  addContactsAddress: /** @type {HTMLInputElement} */ ($('#addContactsAddress')),
+  addContactsInstagram: /** @type {HTMLInputElement} */ ($('#addContactsInstagram')),
+  addSpacerRow: /** @type {HTMLDivElement} */ ($('#addSpacerRow')),
+  addSpacerHeight: /** @type {HTMLInputElement} */ ($('#addSpacerHeight')),
 
   mergeModal: /** @type {HTMLDialogElement} */ ($('#mergeModal')),
   mergeCols: /** @type {HTMLInputElement} */ ($('#mergeCols')),
@@ -413,6 +466,16 @@ const openAddModal = index => {
   els.addText.value = '';
   els.addImage.value = '';
   els.addImageName.textContent = 'файл не выбран';
+  els.addMapLat.value = '';
+  els.addMapLon.value = '';
+  els.addMapZoom.value = '16';
+  els.addButtonLabel.value = '';
+  els.addButtonUrl.value = '';
+  els.addContactsTitle.value = 'Контакты';
+  els.addContactsPhone.value = '';
+  els.addContactsAddress.value = '';
+  els.addContactsInstagram.value = '';
+  els.addSpacerHeight.value = '24';
   syncAddModalUi();
   els.addModal.showModal();
 };
@@ -423,6 +486,10 @@ const syncAddModalUi = () => {
   const showImage = t === 'image' || t === 'mixed';
   els.addTextRow.hidden = !showText;
   els.addImageRow.hidden = !showImage;
+  els.addMapRow.hidden = t !== 'map';
+  els.addButtonRow.hidden = t !== 'button';
+  els.addContactsRow.hidden = t !== 'contacts';
+  els.addSpacerRow.hidden = t !== 'spacer';
 };
 
 const insertBlock = block => {
@@ -441,6 +508,29 @@ const alignClass = align => {
     case 'right':
       return 'align-right';
   }
+};
+
+/** @param {string} url */
+const normalizeUrl = url => {
+  const u = url.trim();
+  if (!u) return '';
+  // allow special schemes
+  if (/^(https?:|mailto:|tel:)/i.test(u)) return u;
+  // if user pasted without scheme, assume https
+  return `https://${u.replace(/^\/+/, '')}`;
+};
+
+const makeOsmEmbedUrl = (lat, lon, zoom) => {
+  const z = Math.max(1, Math.min(18, zoom));
+  // bbox span heuristic for embed: smaller span at higher zoom
+  const span = 0.02 * Math.pow(2, 12 - z);
+  const left = lon - span;
+  const right = lon + span;
+  const top = lat + span;
+  const bottom = lat - span;
+  const bbox = `${left},${bottom},${right},${top}`;
+  const marker = `${lat},${lon}`;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(marker)}`;
 };
 
 /** @param {ITextStyle} style */
@@ -529,6 +619,114 @@ const makeBlockContent = block => {
 
   if (block.type === 'grid' && block.grid) {
     content.appendChild(renderGrid(block.grid));
+    root.appendChild(content);
+    applyBlockBackground(root, block.background);
+    return root;
+  }
+
+  if (block.type === 'divider') {
+    const hr = document.createElement('hr');
+    hr.className = 'divider';
+    content.appendChild(hr);
+    if (state.isAdmin) {
+      content.appendChild(makeBackgroundEditor(block));
+    }
+    root.appendChild(content);
+    applyBlockBackground(root, block.background);
+    return root;
+  }
+
+  if (block.type === 'spacer') {
+    const s = document.createElement('div');
+    s.className = 'spacer';
+    s.style.height = `${Math.max(0, block.spacer?.height ?? 24)}px`;
+    content.appendChild(s);
+    if (state.isAdmin) {
+      content.appendChild(makeSpacerEditor(block));
+      content.appendChild(makeBackgroundEditor(block));
+    }
+    root.appendChild(content);
+    applyBlockBackground(root, block.background);
+    return root;
+  }
+
+  if (block.type === 'map') {
+    const m = block.map;
+    if (m) {
+      const iframe = document.createElement('iframe');
+      iframe.className = 'mapFrame';
+      iframe.src = makeOsmEmbedUrl(m.lat, m.lon, m.zoom);
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'no-referrer-when-downgrade';
+      iframe.title = 'Карта';
+      content.appendChild(iframe);
+    } else {
+      const t = document.createElement('div');
+      t.className = 'miniText';
+      t.textContent = 'Карта не настроена.';
+      content.appendChild(t);
+    }
+    if (state.isAdmin) {
+      content.appendChild(makeMapEditor(block));
+      content.appendChild(makeBackgroundEditor(block));
+    }
+    root.appendChild(content);
+    applyBlockBackground(root, block.background);
+    return root;
+  }
+
+  if (block.type === 'button') {
+    const b = block.button;
+    const a = document.createElement('a');
+    a.className = 'ctaBtn';
+    a.textContent = b?.label?.trim() ? b.label : 'Кнопка';
+    const href = normalizeUrl(b?.url ?? '');
+    a.href = href || '#';
+    if (href) {
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+    }
+    content.appendChild(a);
+    if (state.isAdmin) {
+      content.appendChild(makeButtonEditor(block));
+      content.appendChild(makeBackgroundEditor(block));
+    }
+    root.appendChild(content);
+    applyBlockBackground(root, block.background);
+    return root;
+  }
+
+  if (block.type === 'contacts') {
+    const c = block.contacts;
+    const title = document.createElement('div');
+    title.className = 'contactsTitle';
+    title.textContent = c?.title?.trim() ? c.title : 'Контакты';
+    content.appendChild(title);
+
+    const list = document.createElement('div');
+    list.className = 'contactsList';
+    const addRow = (cap, val) => {
+      if (!val || !val.trim()) return;
+      const row = document.createElement('div');
+      row.className = 'contactsRow';
+      const k = document.createElement('div');
+      k.className = 'contactsKey';
+      k.textContent = cap;
+      const v = document.createElement('div');
+      v.className = 'contactsVal';
+      v.textContent = val;
+      row.append(k, v);
+      list.appendChild(row);
+    };
+    addRow('Телефон', c?.phone ?? '');
+    addRow('Адрес', c?.address ?? '');
+    addRow('Instagram', c?.instagram ?? '');
+    content.appendChild(list);
+
+    if (state.isAdmin) {
+      content.appendChild(makeContactsEditor(block));
+      content.appendChild(makeBackgroundEditor(block));
+    }
     root.appendChild(content);
     applyBlockBackground(root, block.background);
     return root;
@@ -769,6 +967,159 @@ const makeBackgroundEditor = block => {
   return wrap;
 };
 
+/** @param {IBlock} block */
+const makeButtonEditor = block => {
+  const wrap = document.createElement('div');
+  wrap.className = 'panelBlock';
+  const title = document.createElement('div');
+  title.className = 'panelBlock__title';
+  title.textContent = 'Кнопка / ссылка';
+  wrap.appendChild(title);
+
+  const row1 = document.createElement('div');
+  row1.className = 'panelRow';
+  const l1 = document.createElement('div');
+  l1.className = 'label';
+  l1.textContent = 'Текст';
+  const label = document.createElement('input');
+  label.className = 'input';
+  label.type = 'text';
+  label.value = block.button?.label ?? '';
+  label.addEventListener('input', () => {
+    if (!block.button) block.button = { label: '', url: '' };
+    block.button.label = label.value;
+    saveLocal(state.content);
+    render();
+  });
+  row1.append(l1, label);
+  wrap.appendChild(row1);
+
+  const row2 = document.createElement('div');
+  row2.className = 'panelRow';
+  const l2 = document.createElement('div');
+  l2.className = 'label';
+  l2.textContent = 'Ссылка';
+  const url = document.createElement('input');
+  url.className = 'input';
+  url.type = 'text';
+  url.value = block.button?.url ?? '';
+  url.addEventListener('input', () => {
+    if (!block.button) block.button = { label: '', url: '' };
+    block.button.url = url.value;
+    saveLocal(state.content);
+    render();
+  });
+  row2.append(l2, url);
+  wrap.appendChild(row2);
+
+  return wrap;
+};
+
+/** @param {IBlock} block */
+const makeMapEditor = block => {
+  const wrap = document.createElement('div');
+  wrap.className = 'panelBlock';
+  const title = document.createElement('div');
+  title.className = 'panelBlock__title';
+  title.textContent = 'Карта (OpenStreetMap)';
+  wrap.appendChild(title);
+
+  const mkNum = (cap, key, step = '0.000001') => {
+    const row = document.createElement('div');
+    row.className = 'panelRow';
+    const l = document.createElement('div');
+    l.className = 'label';
+    l.textContent = cap;
+    const input = document.createElement('input');
+    input.className = 'input';
+    input.type = 'number';
+    input.step = step;
+    input.value = String(block.map?.[key] ?? '');
+    input.addEventListener('input', () => {
+      if (!block.map) block.map = { lat: 0, lon: 0, zoom: 16 };
+      block.map[key] = Number(input.value);
+      saveLocal(state.content);
+      render();
+    });
+    row.append(l, input);
+    return row;
+  };
+
+  wrap.appendChild(mkNum('Широта', 'lat'));
+  wrap.appendChild(mkNum('Долгота', 'lon'));
+  wrap.appendChild(mkNum('Зум', 'zoom', '1'));
+
+  return wrap;
+};
+
+/** @param {IBlock} block */
+const makeSpacerEditor = block => {
+  const wrap = document.createElement('div');
+  wrap.className = 'panelBlock';
+  const title = document.createElement('div');
+  title.className = 'panelBlock__title';
+  title.textContent = 'Отступ';
+  wrap.appendChild(title);
+
+  const row = document.createElement('div');
+  row.className = 'panelRow';
+  const l = document.createElement('div');
+  l.className = 'label';
+  l.textContent = 'Высота';
+  const input = document.createElement('input');
+  input.className = 'input';
+  input.type = 'number';
+  input.min = '0';
+  input.step = '1';
+  input.value = String(block.spacer?.height ?? 24);
+  input.addEventListener('input', () => {
+    if (!block.spacer) block.spacer = { height: 24 };
+    block.spacer.height = Math.max(0, Number(input.value));
+    saveLocal(state.content);
+    render();
+  });
+  row.append(l, input);
+  wrap.appendChild(row);
+  return wrap;
+};
+
+/** @param {IBlock} block */
+const makeContactsEditor = block => {
+  const wrap = document.createElement('div');
+  wrap.className = 'panelBlock';
+  const title = document.createElement('div');
+  title.className = 'panelBlock__title';
+  title.textContent = 'Контакты';
+  wrap.appendChild(title);
+
+  const mk = (cap, key, placeholder = '') => {
+    const row = document.createElement('div');
+    row.className = 'panelRow';
+    const l = document.createElement('div');
+    l.className = 'label';
+    l.textContent = cap;
+    const input = document.createElement('input');
+    input.className = 'input';
+    input.type = 'text';
+    input.placeholder = placeholder;
+    input.value = block.contacts?.[key] ?? '';
+    input.addEventListener('input', () => {
+      if (!block.contacts) block.contacts = { title: 'Контакты', phone: '', address: '', instagram: '' };
+      block.contacts[key] = input.value;
+      saveLocal(state.content);
+      render();
+    });
+    row.append(l, input);
+    return row;
+  };
+
+  wrap.appendChild(mk('Заголовок', 'title', 'Контакты'));
+  wrap.appendChild(mk('Телефон', 'phone', '+7...'));
+  wrap.appendChild(mk('Адрес', 'address', 'Город, улица...'));
+  wrap.appendChild(mk('Instagram', 'instagram', '@username или ссылка'));
+  return wrap;
+};
+
 /** @param {{ cols: number, rows: number, cells: Array<IBlock | null> }} grid */
 const renderGrid = grid => {
   const wrap = document.createElement('div');
@@ -813,6 +1164,63 @@ const renderNestedBlock = block => {
   if (block.type === 'grid' && block.grid) {
     content.appendChild(renderGrid(block.grid));
   } else {
+    if (block.type === 'divider') {
+      const hr = document.createElement('hr');
+      hr.className = 'divider';
+      content.appendChild(hr);
+    }
+    if (block.type === 'spacer') {
+      const s = document.createElement('div');
+      s.className = 'spacer';
+      s.style.height = `${Math.max(0, block.spacer?.height ?? 24)}px`;
+      content.appendChild(s);
+    }
+    if (block.type === 'map' && block.map) {
+      const iframe = document.createElement('iframe');
+      iframe.className = 'mapFrame';
+      iframe.src = makeOsmEmbedUrl(block.map.lat, block.map.lon, block.map.zoom);
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'no-referrer-when-downgrade';
+      iframe.title = 'Карта';
+      content.appendChild(iframe);
+    }
+    if (block.type === 'button') {
+      const a = document.createElement('a');
+      a.className = 'ctaBtn';
+      a.textContent = block.button?.label?.trim() ? block.button.label : 'Кнопка';
+      const href = normalizeUrl(block.button?.url ?? '');
+      a.href = href || '#';
+      if (href) {
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+      content.appendChild(a);
+    }
+    if (block.type === 'contacts') {
+      const title = document.createElement('div');
+      title.className = 'contactsTitle';
+      title.textContent = block.contacts?.title?.trim() ? block.contacts.title : 'Контакты';
+      content.appendChild(title);
+      const list = document.createElement('div');
+      list.className = 'contactsList';
+      const addRow = (cap, val) => {
+        if (!val || !val.trim()) return;
+        const row = document.createElement('div');
+        row.className = 'contactsRow';
+        const k = document.createElement('div');
+        k.className = 'contactsKey';
+        k.textContent = cap;
+        const v = document.createElement('div');
+        v.className = 'contactsVal';
+        v.textContent = val;
+        row.append(k, v);
+        list.appendChild(row);
+      };
+      addRow('Телефон', block.contacts?.phone ?? '');
+      addRow('Адрес', block.contacts?.address ?? '');
+      addRow('Instagram', block.contacts?.instagram ?? '');
+      content.appendChild(list);
+    }
     if (block.text) {
       const t = document.createElement('div');
       t.className = `text ${textStyleClasses(block.text.style)}`;
@@ -1019,6 +1427,10 @@ const doMergeSelected = () => {
     text: null,
     image: null,
     grid: { cols, rows, cells },
+    map: null,
+    button: null,
+    spacer: null,
+    contacts: null,
   };
 
   // Remove from end to start
@@ -1148,6 +1560,38 @@ const init = async () => {
       alert('Выберите фото.');
       return;
     }
+    if (type === 'map') {
+      const lat = Number(els.addMapLat.value);
+      const lon = Number(els.addMapLon.value);
+      const zoom = Number(els.addMapZoom.value || '16');
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        alert('Введите корректные координаты (широта и долгота).');
+        return;
+      }
+      if (!Number.isFinite(zoom) || zoom < 1 || zoom > 18) {
+        alert('Зум должен быть от 1 до 18.');
+        return;
+      }
+    }
+    if (type === 'button') {
+      const label = els.addButtonLabel.value.trim();
+      const url = els.addButtonUrl.value.trim();
+      if (!label) {
+        alert('Введите текст кнопки.');
+        return;
+      }
+      if (!url) {
+        alert('Введите ссылку для кнопки.');
+        return;
+      }
+    }
+    if (type === 'spacer') {
+      const h = Number(els.addSpacerHeight.value);
+      if (!Number.isFinite(h) || h < 0) {
+        alert('Введите высоту отступа (0+).');
+        return;
+      }
+    }
 
     /** @type {IBlock} */
     const block = {
@@ -1155,9 +1599,27 @@ const init = async () => {
       type,
       align: 'left',
       background: defaultBackground(),
-      text: type === 'image' ? null : { value: textValue, style: defaultTextStyle() },
-      image: type === 'text' ? null : { src: img || '', alt: els.addImage.files?.[0]?.name ?? '' },
+      text: type === 'text' || type === 'mixed' ? { value: textValue, style: defaultTextStyle() } : null,
+      image: type === 'image' || type === 'mixed' ? { src: img || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
       grid: null,
+      map:
+        type === 'map'
+          ? { lat: Number(els.addMapLat.value), lon: Number(els.addMapLon.value), zoom: Number(els.addMapZoom.value || '16') }
+          : null,
+      button:
+        type === 'button'
+          ? { label: els.addButtonLabel.value.trim(), url: els.addButtonUrl.value.trim() }
+          : null,
+      spacer: type === 'spacer' ? { height: Number(els.addSpacerHeight.value || '24') } : null,
+      contacts:
+        type === 'contacts'
+          ? {
+              title: els.addContactsTitle.value.trim() || 'Контакты',
+              phone: els.addContactsPhone.value.trim(),
+              address: els.addContactsAddress.value.trim(),
+              instagram: els.addContactsInstagram.value.trim(),
+            }
+          : null,
     };
     insertBlock(block);
   });
