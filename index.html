@@ -50,11 +50,22 @@
             <button class="btn" id="exportBtn" type="button">Скачать content.json</button>
           </div>
           <div class="panelRow">
+            <button class="btn" id="publishBtn" type="button">Опубликовать в GitHub</button>
+          </div>
+          <div class="panelBlock" style="margin-top: 10px;">
+            <div class="panelBlock__title">GitHub</div>
+            <div class="miniText" id="githubMeta">owner/repo@branch: —</div>
+            <div class="panelRow" style="margin-top: 8px;">
+              <button class="btn btn--ghost" id="githubTestBtn" type="button">Проверить подключение</button>
+            </div>
+          </div>
+          <div class="panelRow">
             <label class="fileBtn">
               Загрузить content.json
               <input id="importInput" type="file" accept="application/json" />
             </label>
           </div>
+          <div class="miniText" id="publishStatus"></div>
           <div class="panelRow">
             <button class="btn btn--danger" id="resetBtn" type="button">Сбросить локальные правки</button>
           </div>

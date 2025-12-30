@@ -19,6 +19,31 @@
 - чтобы “опубликовать” для всех: в админ-панели нажать **“Скачать content.json”**
 - затем файл `content.json` нужно **закоммитить в репозиторий** (GitHub) — после этого Vercel/Pages обновит сайт
 
+## Опубликовать прямо из админки (через Vercel API) — вариант без ручного git
+
+В проекте есть serverless endpoint `POST /api/publish`, который:
+- берёт `content.json` из браузера
+- **загружает картинки** (data URL) в репозиторий как файлы `assets/uploads/*`
+- обновляет `content.json`, заменяя base64 на пути вида `/assets/uploads/...`
+- делает commit в ветку (по умолчанию `main`)
+
+Это **безопаснее**, чем держать токен в браузере: GitHub токен хранится в **Vercel Environment Variables**.
+
+### Настройка Vercel Environment Variables
+
+На Vercel → Project → Settings → Environment Variables добавьте:
+
+- `GITHUB_TOKEN` — fine-grained PAT (Contents: Read/Write) для репозитория
+- `GITHUB_OWNER` — владелец (username или org)
+- `GITHUB_REPO` — имя репозитория
+- `GITHUB_BRANCH` — (опционально) ветка, например `main`
+
+После добавления переменных сделайте Redeploy.
+
+### Как пользоваться
+
+В админ-панели нажмите **“Опубликовать в GitHub”**.
+
 ## Как открыть локально
 
 Проще всего через любой статический сервер.

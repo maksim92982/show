@@ -230,6 +230,10 @@ const els = {
   adminSiteSubtitle: /** @type {HTMLInputElement} */ ($('#adminSiteSubtitle')),
 
   exportBtn: /** @type {HTMLButtonElement} */ ($('#exportBtn')),
+  publishBtn: /** @type {HTMLButtonElement} */ ($('#publishBtn')),
+  publishStatus: /** @type {HTMLDivElement} */ ($('#publishStatus')),
+  githubMeta: /** @type {HTMLDivElement} */ ($('#githubMeta')),
+  githubTestBtn: /** @type {HTMLButtonElement} */ ($('#githubTestBtn')),
   importInput: /** @type {HTMLInputElement} */ ($('#importInput')),
   resetBtn: /** @type {HTMLButtonElement} */ ($('#resetBtn')),
 
@@ -289,6 +293,67 @@ const downloadJson = (filename, obj) => {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+};
+
+/** @param {string} text */
+const setPublishStatus = text => {
+  els.publishStatus.textContent = text;
+};
+
+/**
+ * Publish current content via Vercel serverless API.
+ * Requires /api/publish and env vars on Vercel.
+ */
+const publishToGitHubAsync = async () => {
+  setPublishStatus('Публикация...');
+  try {
+    const res = await fetch('/api/publish', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ content: state.content }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = typeof json?.error === 'string' ? json.error : `HTTP ${res.status}`;
+      setPublishStatus(`Ошибка: ${msg}`);
+      return;
+    }
+    setPublishStatus(`Опубликовано: ${json.commitUrl ?? 'OK'}`);
+  } catch (e) {
+    setPublishStatus('Ошибка публикации (нет связи или блокировка запроса).');
+  }
+};
+
+const refreshGitHubMetaAsync = async () => {
+  try {
+    const res = await fetch('/api/github-status', { cache: 'no-cache' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      els.githubMeta.textContent = `owner/repo@branch: — (${data?.error ?? 'нет данных'})`;
+      return;
+    }
+    els.githubMeta.textContent = `owner/repo@branch: ${data.owner}/${data.repo}@${data.branch}`;
+  } catch {
+    els.githubMeta.textContent = 'owner/repo@branch: — (ошибка запроса)';
+  }
+};
+
+const testGitHubConnectionAsync = async () => {
+  els.githubTestBtn.disabled = true;
+  setPublishStatus('Проверяем подключение к GitHub...');
+  try {
+    const res = await fetch('/api/github-status', { cache: 'no-cache' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setPublishStatus(`GitHub: ошибка — ${data?.error ?? 'HTTP ' + res.status}`);
+      return;
+    }
+    setPublishStatus(`GitHub: OK — ${data.owner}/${data.repo} (${data.defaultBranch})`);
+  } catch {
+    setPublishStatus('GitHub: ошибка запроса');
+  } finally {
+    els.githubTestBtn.disabled = false;
+  }
 };
 
 /** @param {File} file */
@@ -981,6 +1046,7 @@ const init = async () => {
   // If local exists, use it (admin edits persistence). Public users usually won't have it.
   state.content = loadLocal() ?? published;
   applySite();
+  refreshGitHubMetaAsync();
 
   // Viewer settings + admin login modal
   els.openLoginBtn.addEventListener('click', () => {
@@ -1024,6 +1090,14 @@ const init = async () => {
 
   els.exportBtn.addEventListener('click', () => {
     downloadJson('content.json', state.content);
+  });
+
+  els.publishBtn.addEventListener('click', () => {
+    publishToGitHubAsync();
+  });
+
+  els.githubTestBtn.addEventListener('click', () => {
+    testGitHubConnectionAsync();
   });
 
   els.importInput.addEventListener('change', async () => {
