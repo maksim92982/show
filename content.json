@@ -14,7 +14,52 @@
       "imageDataUrl": null
     }
   },
-  "blocks": []
+  "blocks": [
+    {
+      "id": "b_19b6ee3e7d0_3ac8b6562db368",
+      "type": "text",
+      "align": "left",
+      "background": {
+        "type": "solid",
+        "solid": "#c8c8df",
+        "gradient": {
+          "from": "#11111a",
+          "to": "#1d1633",
+          "angle": 20
+        },
+        "imageDataUrl": null
+      },
+      "text": {
+        "value": "пример текста",
+        "style": {
+          "bold": true,
+          "italic": true,
+          "underline": false
+        }
+      },
+      "image": null,
+      "grid": null
+    },
+    {
+      "id": "b_19b6ee48c93_36f4fce6e3028",
+      "type": "image",
+      "align": "left",
+      "background": {
+        "type": "solid",
+        "solid": "#11111a",
+        "gradient": {
+          "from": "#11111a",
+          "to": "#1d1633",
+          "angle": 20
+        },
+        "imageDataUrl": null
+      },
+      "text": null,
+      "image": {
+        "src": "/assets/uploads/1767093624678-0.jpg",
+        "alt": "6.JPG"
+      },
+      "grid": null
+    }
+  ]
 }
-
-
