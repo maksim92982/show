@@ -62,47 +62,106 @@ const githubHeaders = token => ({
 
 const ghUrl = (owner, repo, path) => `https://api.github.com/repos/${owner}/${repo}${path}`;
 
-const getFileShaAndContentAsync = async (owner, repo, branch, path, token) => {
-  const res = await fetch(
-    ghUrl(owner, repo, `/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`),
-    { headers: githubHeaders(token) },
-  );
-  if (res.status === 404) return { sha: null, content: null };
+const getRefAsync = async (owner, repo, branch, token) => {
+  const res = await fetch(ghUrl(owner, repo, `/git/ref/heads/${encodeURIComponent(branch)}`), {
+    headers: githubHeaders(token),
+  });
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`GitHub get content failed: ${res.status} ${txt}`);
+    const msg = typeof data?.message === 'string' ? data.message : `HTTP ${res.status}`;
+    throw new Error(`GitHub get ref failed: ${msg}`);
   }
-  const data = await res.json();
-  const sha = typeof data?.sha === 'string' ? data.sha : null;
-  const contentB64 = typeof data?.content === 'string' ? data.content : null;
-  const content =
-    contentB64 && typeof data?.encoding === 'string' && data.encoding === 'base64'
-      ? Buffer.from(contentB64, 'base64').toString('utf-8')
-      : null;
-  return { sha, content };
+  const sha = data?.object?.sha;
+  if (typeof sha !== 'string') throw new Error('GitHub get ref failed: missing sha');
+  return sha;
 };
 
-const putFileAsync = async (owner, repo, branch, path, token, message, contentBufOrString, sha) => {
-  const contentB64 = Buffer.isBuffer(contentBufOrString)
-    ? contentBufOrString.toString('base64')
-    : Buffer.from(String(contentBufOrString), 'utf-8').toString('base64');
+const getCommitAsync = async (owner, repo, sha, token) => {
+  const res = await fetch(ghUrl(owner, repo, `/git/commits/${encodeURIComponent(sha)}`), {
+    headers: githubHeaders(token),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = typeof data?.message === 'string' ? data.message : `HTTP ${res.status}`;
+    throw new Error(`GitHub get commit failed: ${msg}`);
+  }
+  const treeSha = data?.tree?.sha;
+  if (typeof treeSha !== 'string') throw new Error('GitHub get commit failed: missing tree sha');
+  return { treeSha };
+};
 
+const createBlobAsync = async (owner, repo, buf, token) => {
   const body = {
-    message,
-    content: contentB64,
-    branch,
-    ...(sha ? { sha } : {}),
+    content: buf.toString('base64'),
+    encoding: 'base64',
   };
-
-  const res = await fetch(ghUrl(owner, repo, `/contents/${encodeURIComponent(path)}`), {
-    method: 'PUT',
+  const res = await fetch(ghUrl(owner, repo, '/git/blobs'), {
+    method: 'POST',
     headers: { ...githubHeaders(token), 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
-  const data = await res.json().catch(() => null);
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msg = data?.message ? String(data.message) : `HTTP ${res.status}`;
-    throw new Error(`GitHub put content failed: ${msg}`);
+    const msg = typeof data?.message === 'string' ? data.message : `HTTP ${res.status}`;
+    throw new Error(`GitHub create blob failed: ${msg}`);
+  }
+  const sha = data?.sha;
+  if (typeof sha !== 'string') throw new Error('GitHub create blob failed: missing sha');
+  return sha;
+};
+
+const createTreeAsync = async (owner, repo, baseTreeSha, entries, token) => {
+  const body = {
+    base_tree: baseTreeSha,
+    tree: entries,
+  };
+  const res = await fetch(ghUrl(owner, repo, '/git/trees'), {
+    method: 'POST',
+    headers: { ...githubHeaders(token), 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = typeof data?.message === 'string' ? data.message : `HTTP ${res.status}`;
+    throw new Error(`GitHub create tree failed: ${msg}`);
+  }
+  const sha = data?.sha;
+  if (typeof sha !== 'string') throw new Error('GitHub create tree failed: missing sha');
+  return sha;
+};
+
+const createCommitAsync = async (owner, repo, message, treeSha, parentSha, token) => {
+  const body = {
+    message,
+    tree: treeSha,
+    parents: [parentSha],
+  };
+  const res = await fetch(ghUrl(owner, repo, '/git/commits'), {
+    method: 'POST',
+    headers: { ...githubHeaders(token), 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = typeof data?.message === 'string' ? data.message : `HTTP ${res.status}`;
+    throw new Error(`GitHub create commit failed: ${msg}`);
+  }
+  const sha = data?.sha;
+  if (typeof sha !== 'string') throw new Error('GitHub create commit failed: missing sha');
+  return sha;
+};
+
+const updateRefAsync = async (owner, repo, branch, newSha, token) => {
+  const body = { sha: newSha, force: false };
+  const res = await fetch(ghUrl(owner, repo, `/git/refs/heads/${encodeURIComponent(branch)}`), {
+    method: 'PATCH',
+    headers: { ...githubHeaders(token), 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = typeof data?.message === 'string' ? data.message : `HTTP ${res.status}`;
+    throw new Error(`GitHub update ref failed: ${msg}`);
   }
   return data;
 };
@@ -117,7 +176,7 @@ const walkBlocks = (blocks, fn) => {
   }
 };
 
-const uploadImagesAndRewriteContentAsync = async (content, owner, repo, branch, token, commitMessage) => {
+const collectImagesAndRewriteContent = content => {
   /** @type {Array<{ buf: Buffer, ext: string, assign: (path: string) => void }>} */
   const uploads = [];
 
@@ -165,16 +224,7 @@ const uploadImagesAndRewriteContentAsync = async (content, owner, repo, branch, 
     });
   }
 
-  // Upload assets first (each as separate commit in the same branch).
-  // Then commit content.json.
-  for (let i = 0; i < uploads.length; i += 1) {
-    const u = uploads[i];
-    const filename = `${Date.now()}-${i}.${u.ext}`;
-    const path = `${UPLOAD_DIR}/${filename}`;
-    const { sha } = await getFileShaAndContentAsync(owner, repo, branch, path, token);
-    await putFileAsync(owner, repo, branch, path, token, `${commitMessage} (asset ${i + 1}/${uploads.length})`, u.buf, sha);
-    u.assign(path);
-  }
+  return uploads;
 };
 
 export default async function handler(req, res) {
@@ -201,13 +251,38 @@ export default async function handler(req, res) {
     // Clone content object for safe mutation
     const contentCopy = JSON.parse(JSON.stringify(content));
 
-    await uploadImagesAndRewriteContentAsync(contentCopy, owner, repo, branch, token, commitMessage);
+    // Prepare a SINGLE commit with all assets + updated content.json.
+    const uploads = collectImagesAndRewriteContent(contentCopy);
 
-    const targetPath = 'content.json';
-    const { sha } = await getFileShaAndContentAsync(owner, repo, branch, targetPath, token);
-    const putRes = await putFileAsync(owner, repo, branch, targetPath, token, commitMessage, json(contentCopy), sha);
+    // Compute file paths first and rewrite content to reference them.
+    const now = Date.now();
+    /** @type {Array<{ path: string, buf: Buffer }>} */
+    const filesToWrite = [];
+    for (let i = 0; i < uploads.length; i += 1) {
+      const u = uploads[i];
+      const filename = `${now}-${i}.${u.ext}`;
+      const path = `${UPLOAD_DIR}/${filename}`;
+      u.assign(path);
+      filesToWrite.push({ path, buf: u.buf });
+    }
+    filesToWrite.push({ path: 'content.json', buf: Buffer.from(json(contentCopy), 'utf-8') });
 
-    const commitUrl = putRes?.commit?.html_url || null;
+    // Create commit via Git Data API
+    const parentSha = await getRefAsync(owner, repo, branch, token);
+    const { treeSha: baseTreeSha } = await getCommitAsync(owner, repo, parentSha, token);
+
+    /** @type {Array<{ path: string, mode: string, type: string, sha: string }>} */
+    const treeEntries = [];
+    for (const f of filesToWrite) {
+      const blobSha = await createBlobAsync(owner, repo, f.buf, token);
+      treeEntries.push({ path: f.path, mode: '100644', type: 'blob', sha: blobSha });
+    }
+
+    const newTreeSha = await createTreeAsync(owner, repo, baseTreeSha, treeEntries, token);
+    const newCommitSha = await createCommitAsync(owner, repo, commitMessage, newTreeSha, parentSha, token);
+    await updateRefAsync(owner, repo, branch, newCommitSha, token);
+
+    const commitUrl = `https://github.com/${owner}/${repo}/commit/${newCommitSha}`;
     res.status(200).json({ ok: true, commitUrl });
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message : 'Unknown error' });
