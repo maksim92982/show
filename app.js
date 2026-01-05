@@ -304,7 +304,9 @@ const els = {
 
   mergeBtn: /** @type {HTMLButtonElement} */ ($('#mergeBtn')),
 
-  addModal: /** @type {HTMLDialogElement} */ ($('#addModal')),
+  addModal: /** @type {HTMLElement} */ ($('#addModal')),
+  addModalBackdrop: /** @type {HTMLElement} */ ($('#addModalBackdrop')),
+  addForm: /** @type {HTMLFormElement} */ ($('#addForm')),
   addType: /** @type {HTMLSelectElement} */ ($('#addType')),
   addTextRow: /** @type {HTMLDivElement} */ ($('#addTextRow')),
   addText: /** @type {HTMLTextAreaElement} */ ($('#addText')),
@@ -374,7 +376,6 @@ const setPublishStatus = text => {
  * Requires /api/publish and env vars on Vercel.
  */
 const publishToGitHubAsync = async () => {
-  console.log('publishToGitHubAsync called');
   els.publishBtn.disabled = true;
   setPublishStatus('Публикация...');
   try {
@@ -412,7 +413,6 @@ const refreshGitHubMetaAsync = async () => {
 };
 
 const testGitHubConnectionAsync = async () => {
-  console.log('testGitHubConnectionAsync called');
   els.githubTestBtn.disabled = true;
   setPublishStatus('Проверяем подключение к GitHub...');
   try {
@@ -480,7 +480,6 @@ const makeAddSlot = index => {
 };
 
 const openAddModal = index => {
-  console.log('openAddModal called', index, state.isAdmin);
   if (!state.isAdmin) return;
   state.addInsertIndex = index;
   state.addImageDataUrl = null;
@@ -500,7 +499,8 @@ const openAddModal = index => {
   els.addContactsInstagram.value = '';
   els.addSpacerHeight.value = '24';
   syncAddModalUi();
-  els.addModal.showModal();
+  els.addModal.style.display = 'flex';
+  els.addModalBackdrop.style.display = 'block';
 };
 
 const syncAddModalUi = () => {
@@ -1883,8 +1883,13 @@ const init = async () => {
     state.addImageDataUrl = await readFileAsDataUrlAsync(file);
   });
 
-  els.addModal.addEventListener('close', () => {
-    if (els.addModal.returnValue !== 'ok') return;
+  els.addForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const submitter = /** @type {HTMLButtonElement} */ (e.submitter);
+    if (submitter?.value !== 'ok') {
+      closeAddModal();
+      return;
+    }
     const type = /** @type {TBlockType} */ (els.addType.value);
     const textValue = els.addText.value.trim();
     const img = state.addImageDataUrl;
@@ -1980,7 +1985,15 @@ const init = async () => {
           : null,
     };
     insertBlock(block);
+    closeAddModal();
   });
+
+  const closeAddModal = () => {
+    els.addModal.style.display = 'none';
+    els.addModalBackdrop.style.display = 'none';
+  };
+
+  els.addModalBackdrop.addEventListener('click', closeAddModal);
 
   // Merge
   els.mergeBtn.addEventListener('click', openMergeModal);
