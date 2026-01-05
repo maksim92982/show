@@ -1932,7 +1932,7 @@ const init = async () => {
     e.preventDefault();
     const submitter = /** @type {HTMLButtonElement} */ (e.submitter);
     console.log('addForm submit', submitter?.value);
-    if (submitter?.value !== 'ok') {
+    if (submitter && submitter.value !== 'ok') {
       console.log('submitter value not ok, closing modal');
       closeAddModal();
       return;
