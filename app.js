@@ -7,7 +7,7 @@ const PUBLISHED_URL = './content.json';
 /**
  * @typedef {'left'|'center'|'right'} TAlign
  * @typedef {'solid'|'gradient'|'image'} TBgType
- * @typedef {'text'|'image'|'mixed'|'grid'|'map'|'booking'|'button'|'contacts'|'divider'|'spacer'} TBlockType
+ * @typedef {'text'|'image'|'video'|'mixed'|'grid'|'map'|'booking'|'button'|'contacts'|'divider'|'spacer'} TBlockType
  */
 
 /**
@@ -35,6 +35,7 @@ const PUBLISHED_URL = './content.json';
  *  background: IBackground,
  *  text: { value: string, style: ITextStyle } | null,
  *  image: { src: string, alt: string } | null,
+ *  video: { src: string, alt: string } | null,
  *  grid: { cols: number, rows: number, cells: Array<IBlock | null> } | null,
  *  map: { lat: number, lon: number, zoom: number } | null,
  *  booking: { title: string, slotMinutes: number, days: Array<{ dow: number, start: string, end: string }> } | null,
@@ -506,9 +507,11 @@ const openAddModal = index => {
 const syncAddModalUi = () => {
   const t = els.addType.value;
   const showText = t === 'text' || t === 'mixed';
-  const showImage = t === 'image' || t === 'mixed';
+  const showMedia = t === 'image' || t === 'video' || t === 'mixed';
   els.addTextRow.hidden = !showText;
-  els.addImageRow.hidden = !showImage;
+  els.addImageRow.hidden = !showMedia;
+  els.addImage.accept = t === 'video' ? 'video/*' : 'image/*';
+};
   els.addMapRow.hidden = t !== 'map';
   els.addBookingRow.hidden = t !== 'booking';
   els.addButtonRow.hidden = t !== 'button';
@@ -967,6 +970,35 @@ const makeBlockContent = block => {
         if (!file) return;
         const dataUrl = await readFileAsDataUrlAsync(file);
         block.image = { src: dataUrl, alt: file.name };
+        saveLocal(state.content);
+        render();
+      });
+      replace.appendChild(input);
+      content.appendChild(replace);
+    }
+  }
+
+  if (block.video) {
+    const vid = document.createElement('video');
+    vid.className = 'video';
+    vid.src = block.video.src;
+    vid.alt = block.video.alt || '';
+    vid.controls = true;
+    vid.preload = 'metadata';
+    content.appendChild(vid);
+
+    if (state.isAdmin) {
+      const replace = document.createElement('label');
+      replace.className = 'fileBtn';
+      replace.textContent = 'Заменить видео';
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'video/*';
+      input.addEventListener('change', async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        const dataUrl = await readFileAsDataUrlAsync(file);
+        block.video = { src: dataUrl, alt: file.name };
         saveLocal(state.content);
         render();
       });
@@ -1892,14 +1924,14 @@ const init = async () => {
     }
     const type = /** @type {TBlockType} */ (els.addType.value);
     const textValue = els.addText.value.trim();
-    const img = state.addImageDataUrl;
+    const media = state.addImageDataUrl;
 
     if ((type === 'text' || type === 'mixed') && !textValue) {
       alert('Введите текст.');
       return;
     }
-    if ((type === 'image' || type === 'mixed') && !img) {
-      alert('Выберите фото.');
+    if ((type === 'image' || type === 'video' || type === 'mixed') && !media) {
+      alert('Выберите файл.');
       return;
     }
     if (type === 'map') {
@@ -1949,7 +1981,8 @@ const init = async () => {
       align: 'left',
       background: defaultBackground(),
       text: type === 'text' || type === 'mixed' ? { value: textValue, style: defaultTextStyle() } : null,
-      image: type === 'image' || type === 'mixed' ? { src: img || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
+      image: type === 'image' || type === 'mixed' ? { src: media || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
+      video: type === 'video' ? { src: media || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
       grid: null,
       map:
         type === 'map'

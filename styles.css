@@ -337,6 +337,13 @@ input:checked + .slider:before {
   display: block;
 }
 
+.video {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: block;
+}
+
 .divider {
   width: 100%;
   border: none;
