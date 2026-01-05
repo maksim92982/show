@@ -468,6 +468,7 @@ const applyBlockBackground = (el, bg) => {
 };
 
 const makeAddSlot = index => {
+  console.log('makeAddSlot called', index);
   const wrap = document.createElement('div');
   wrap.className = 'addSlot';
   const btn = document.createElement('button');
@@ -475,13 +476,17 @@ const makeAddSlot = index => {
   btn.type = 'button';
   btn.textContent = '+';
   btn.title = 'Добавить блок';
-  btn.addEventListener('click', () => openAddModal(index));
+  btn.addEventListener('click', () => {
+    console.log('plusBtn clicked', index);
+    openAddModal(index);
+  });
   wrap.appendChild(btn);
   return wrap;
 };
 
 const openAddModal = index => {
   console.log('openAddModal called', index, state.isAdmin);
+  console.log('setting addInsertIndex to', index);
   if (!state.isAdmin) return;
   state.addInsertIndex = index;
   state.addImageDataUrl = null;
@@ -507,6 +512,7 @@ const openAddModal = index => {
 
 const syncAddModalUi = () => {
   const t = els.addType.value;
+  console.log('syncAddModalUi called', t);
   const showText = t === 'text' || t === 'mixed';
   const showMedia = t === 'image' || t === 'video' || t === 'mixed';
   els.addTextRow.hidden = !showText;
@@ -521,7 +527,9 @@ const syncAddModalUi = () => {
 
 const insertBlock = block => {
   console.log('insertBlock called', block);
+  console.log('inserting at index', state.addInsertIndex, 'current blocks length', state.content.blocks.length);
   state.content.blocks.splice(state.addInsertIndex, 0, block);
+  console.log('after splice, blocks length', state.content.blocks.length);
   saveLocal(state.content);
   render();
 };
@@ -1615,6 +1623,7 @@ const renderNestedBlock = block => {
 
 const render = () => {
   console.log('render called, blocks count:', state.content.blocks.length);
+  console.log('current blocks:', state.content.blocks.map(b => ({ id: b.id, type: b.type })));
   applySite();
 
   // Toggle visibility based on admin mode
@@ -1635,6 +1644,7 @@ const render = () => {
   }
 
   blocks.forEach((b, idx) => {
+    console.log('rendering block', idx, b.type, b.id);
     els.blocksRoot.appendChild(makeBlockContent(b));
     if (state.isAdmin) {
       els.blocksRoot.appendChild(makeAddSlot(idx + 1));
@@ -1918,10 +1928,12 @@ const init = async () => {
   });
 
   els.addForm.addEventListener('submit', (e) => {
+    console.log('addForm submit event fired');
     e.preventDefault();
     const submitter = /** @type {HTMLButtonElement} */ (e.submitter);
     console.log('addForm submit', submitter?.value);
     if (submitter?.value !== 'ok') {
+      console.log('submitter value not ok, closing modal');
       closeAddModal();
       return;
     }
@@ -2020,11 +2032,14 @@ const init = async () => {
             }
           : null,
     };
+    console.log('About to call insertBlock with block:', block);
     insertBlock(block);
+    console.log('insertBlock called, closing modal');
     closeAddModal();
   });
 
   const closeAddModal = () => {
+    console.log('closeAddModal called');
     els.addModal.style.display = 'none';
     els.addModalBackdrop.style.display = 'none';
   };
