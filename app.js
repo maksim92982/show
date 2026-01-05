@@ -481,6 +481,7 @@ const makeAddSlot = index => {
 };
 
 const openAddModal = index => {
+  console.log('openAddModal called', index, state.isAdmin);
   if (!state.isAdmin) return;
   state.addInsertIndex = index;
   state.addImageDataUrl = null;
@@ -519,6 +520,7 @@ const syncAddModalUi = () => {
 };
 
 const insertBlock = block => {
+  console.log('insertBlock called', block);
   state.content.blocks.splice(state.addInsertIndex, 0, block);
   saveLocal(state.content);
   render();
@@ -1612,6 +1614,7 @@ const renderNestedBlock = block => {
 };
 
 const render = () => {
+  console.log('render called, blocks count:', state.content.blocks.length);
   applySite();
 
   // Toggle visibility based on admin mode
@@ -1917,6 +1920,7 @@ const init = async () => {
   els.addForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const submitter = /** @type {HTMLButtonElement} */ (e.submitter);
+    console.log('addForm submit', submitter?.value);
     if (submitter?.value !== 'ok') {
       closeAddModal();
       return;
