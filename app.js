@@ -330,6 +330,7 @@ const els = {
   addContactsInstagram: /** @type {HTMLInputElement} */ ($('#addContactsInstagram')),
   addSpacerRow: /** @type {HTMLDivElement} */ ($('#addSpacerRow')),
   addSpacerHeight: /** @type {HTMLInputElement} */ ($('#addSpacerHeight')),
+  addConfirmBtn: /** @type {HTMLButtonElement} */ ($('#addConfirmBtn')),
 
   mergeModal: /** @type {HTMLDialogElement} */ ($('#mergeModal')),
   mergeCols: /** @type {HTMLInputElement} */ ($('#mergeCols')),
@@ -507,10 +508,11 @@ const openAddModal = index => {
   els.addSpacerHeight.value = '24';
   console.log('setting display flex and block');
   syncAddModalUi();
-  els.addModal.style.display = 'flex';
+  els.addModal.style.display = 'block';
   els.addModalBackdrop.style.display = 'block';
   console.log('modal should be visible now');
   els.addModal.focus();
+  console.log('focused modal');
 };
 
 const syncAddModalUi = () => {
