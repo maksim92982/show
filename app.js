@@ -2015,35 +2015,3 @@ const init = async () => {
 };
 
 init();
-
-// Admin panel resize functionality
-let isResizing = false;
-let startX = 0;
-let startWidth = 0;
-
-els.adminResizeHandle.addEventListener('mousedown', (e) => {
-  isResizing = true;
-  startX = e.clientX;
-  startWidth = els.adminPanel.offsetWidth;
-  document.body.style.cursor = 'ew-resize';
-  document.body.style.userSelect = 'none';
-});
-
-document.addEventListener('mousemove', (e) => {
-  if (!isResizing) return;
-  const newWidth = startWidth - (e.clientX - startX);
-  const minWidth = window.innerWidth * 0.1;
-  const maxWidth = window.innerWidth * 0.9;
-  const clampedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-  els.adminPanel.style.width = `${clampedWidth}px`;
-});
-
-document.addEventListener('mouseup', () => {
-  if (isResizing) {
-    isResizing = false;
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }
-});
-
-
