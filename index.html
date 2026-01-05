@@ -171,9 +171,8 @@
           <button class="btn btn--ghost" value="cancel" type="submit">Закрыть</button>
         </div>
       </form>
-    <div class="modal-backdrop" id="addModalBackdrop" style="display: none;"></div>
-    <div class="modal" id="addModal" style="display: none;" tabindex="-1">
-      <form class="modal__card" id="addForm">
+<dialog class="modal" id="addModal">
+  <form method="dialog" class="modal__card" id="addForm">
         <div class="modal__title">Добавить блок</div>
 
         <div class="panelRow">
@@ -274,7 +273,7 @@
           <button class="btn" id="addConfirmBtn" value="ok" type="submit">Добавить</button>
         </div>
       </form>
-    </div>
+    </dialog>
 
     <dialog class="modal" id="mergeModal">
       <form method="dialog" class="modal__card">

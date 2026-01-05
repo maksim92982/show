@@ -305,8 +305,7 @@ const els = {
 
   mergeBtn: /** @type {HTMLButtonElement} */ ($('#mergeBtn')),
 
-  addModal: /** @type {HTMLElement} */ ($('#addModal')),
-  addModalBackdrop: /** @type {HTMLElement} */ ($('#addModalBackdrop')),
+  addModal: /** @type {HTMLDialogElement} */ ($('#addModal')),
   addForm: /** @type {HTMLFormElement} */ ($('#addForm')),
   addType: /** @type {HTMLSelectElement} */ ($('#addType')),
   addTextRow: /** @type {HTMLDivElement} */ ($('#addTextRow')),
@@ -506,13 +505,10 @@ const openAddModal = index => {
   els.addContactsAddress.value = '';
   els.addContactsInstagram.value = '';
   els.addSpacerHeight.value = '24';
-  console.log('setting display flex and block');
+  console.log('syncing UI and showing modal');
   syncAddModalUi();
-  els.addModal.style.display = 'block';
-  els.addModalBackdrop.style.display = 'block';
-  console.log('modal should be visible now');
-  els.addModal.focus();
-  console.log('focused modal');
+  els.addModal.showModal();
+  console.log('modal shown');
 };
 
 const syncAddModalUi = () => {
@@ -2045,11 +2041,9 @@ const init = async () => {
 
   const closeAddModal = () => {
     console.log('closeAddModal called');
-    els.addModal.style.display = 'none';
-    els.addModalBackdrop.style.display = 'none';
+    els.addModal.close();
   };
 
-  els.addModalBackdrop.addEventListener('click', closeAddModal);
   els.addConfirmBtn.addEventListener('click', () => console.log('addConfirmBtn clicked'));
 
   // Merge
