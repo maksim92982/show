@@ -9,7 +9,15 @@
   <body>
     <div id="siteBackground" class="siteBackground" aria-hidden="true"></div>
 
-    <button class="cornerSquare" id="openLoginBtn" type="button" title="Настройки / вход"></button>
+    <div class="modeToggle">
+      <label class="switch">
+        <input type="checkbox" id="modeSwitch">
+        <span class="slider"></span>
+      </label>
+      <span class="modeLabel" id="modeLabel">Режим пользователя</span>
+    </div>
+
+    <button class="cornerSquare" id="openLoginBtn" type="button" title="Настройки"></button>
 
     <main class="main">
       <div class="container">
@@ -25,6 +33,7 @@
     </main>
 
     <aside class="adminPanel" id="adminPanel" data-open="false">
+      <div class="adminPanel__resizeHandle" id="adminResizeHandle"></div>
       <div class="adminPanel__header">
         <div class="adminPanel__title">Админ-панель</div>
         <button class="btn btn--ghost" id="closeAdminBtn" type="button">Закрыть</button>
@@ -162,8 +171,6 @@
           <button class="btn btn--ghost" value="cancel" type="submit">Закрыть</button>
         </div>
       </form>
-    </dialog>
-
     <dialog class="modal" id="addModal">
       <form method="dialog" class="modal__card">
         <div class="modal__title">Добавить блок</div>

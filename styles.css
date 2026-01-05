@@ -58,6 +58,63 @@ body {
   transform: translateY(1px);
 }
 
+.modeToggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 50;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--accent);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
 .siteBackground {
   position: fixed;
   inset: 0;
@@ -419,10 +476,21 @@ body {
   box-shadow: -10px 0 40px rgba(0, 0, 0, 0.35);
   display: none;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .adminPanel[data-open="true"] {
   display: flex;
+}
+
+.adminPanel__resizeHandle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+  background: transparent;
 }
 
 .adminPanel__header {
@@ -432,6 +500,7 @@ body {
   gap: 10px;
   align-items: center;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .adminPanel__title {
@@ -440,10 +509,11 @@ body {
 
 .adminPanel__body {
   padding: 14px;
-  overflow: auto;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
 }
 
 .panelBlock {

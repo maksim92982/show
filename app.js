@@ -3,9 +3,6 @@
 const STORAGE_KEY = 'bakery.site.content.v1';
 const VIEWER_PREFS_KEY = 'bakery.viewer.prefs.v1';
 const PUBLISHED_URL = './content.json';
-const ADMIN_LOGIN = 'admin12345';
-const ADMIN_PASSWORD = '&U)q!j&98+';
-const SAVED_CREDS_KEY = 'bakery.admin.creds.v1';
 
 /**
  * @typedef {'left'|'center'|'right'} TAlign
@@ -277,14 +274,10 @@ const els = {
 
   closeAdminBtn: /** @type {HTMLButtonElement} */ ($('#closeAdminBtn')),
   adminPanel: /** @type {HTMLElement} */ ($('#adminPanel')),
+  adminResizeHandle: /** @type {HTMLElement} */ ($('#adminResizeHandle')),
   openLoginBtn: /** @type {HTMLButtonElement} */ ($('#openLoginBtn')),
-  loginModal: /** @type {HTMLDialogElement} */ ($('#loginModal')),
-  viewerColor: /** @type {HTMLInputElement} */ ($('#viewerColor')),
-  viewerColorResetBtn: /** @type {HTMLButtonElement} */ ($('#viewerColorResetBtn')),
-  loginUser: /** @type {HTMLInputElement} */ ($('#loginUser')),
-  loginPass: /** @type {HTMLInputElement} */ ($('#loginPass')),
-  saveCredsBtn: /** @type {HTMLButtonElement} */ ($('#saveCredsBtn')),
-  loginHint: /** @type {HTMLDivElement} */ ($('#loginHint')),
+  modeSwitch: /** @type {HTMLInputElement} */ ($('#modeSwitch')),
+  modeLabel: /** @type {HTMLSpanElement} */ ($('#modeLabel')),
 
   adminSiteTitle: /** @type {HTMLInputElement} */ ($('#adminSiteTitle')),
   adminSiteSubtitle: /** @type {HTMLInputElement} */ ($('#adminSiteSubtitle')),
@@ -381,6 +374,8 @@ const setPublishStatus = text => {
  * Requires /api/publish and env vars on Vercel.
  */
 const publishToGitHubAsync = async () => {
+  console.log('publishToGitHubAsync called');
+  els.publishBtn.disabled = true;
   setPublishStatus('Публикация...');
   try {
     const res = await fetch('/api/publish', {
@@ -397,6 +392,8 @@ const publishToGitHubAsync = async () => {
     setPublishStatus(`Опубликовано: ${json.commitUrl ?? 'OK'}`);
   } catch (e) {
     setPublishStatus('Ошибка публикации (нет связи или блокировка запроса).');
+  } finally {
+    els.publishBtn.disabled = false;
   }
 };
 
@@ -415,6 +412,7 @@ const refreshGitHubMetaAsync = async () => {
 };
 
 const testGitHubConnectionAsync = async () => {
+  console.log('testGitHubConnectionAsync called');
   els.githubTestBtn.disabled = true;
   setPublishStatus('Проверяем подключение к GitHub...');
   try {
@@ -482,6 +480,7 @@ const makeAddSlot = index => {
 };
 
 const openAddModal = index => {
+  console.log('openAddModal called', index, state.isAdmin);
   if (!state.isAdmin) return;
   state.addInsertIndex = index;
   state.addImageDataUrl = null;
@@ -1584,6 +1583,10 @@ const renderNestedBlock = block => {
 const render = () => {
   applySite();
 
+  // Toggle visibility based on admin mode
+  els.openLoginBtn.style.display = state.isAdmin ? 'block' : 'none';
+  els.adminPanel.style.display = state.isAdmin ? 'block' : 'none';
+
   els.blocksRoot.innerHTML = '';
   const blocks = state.content.blocks;
 
@@ -1608,7 +1611,6 @@ const render = () => {
 };
 
 const openAdmin = () => {
-  state.isAdmin = true;
   els.adminPanel.dataset.open = 'true';
   els.adminSiteTitle.value = state.content.site.title;
   els.adminSiteSubtitle.value = state.content.site.subtitle;
@@ -1616,11 +1618,42 @@ const openAdmin = () => {
 };
 
 const closeAdmin = () => {
-  state.isAdmin = false;
   els.adminPanel.dataset.open = 'false';
   state.selectedIds.clear();
   render();
 };
+
+// Resizable admin panel
+let isResizing = false;
+let startX = 0;
+let startWidth = 0;
+
+const startResize = (e) => {
+  isResizing = true;
+  startX = e.clientX;
+  startWidth = els.adminPanel.offsetWidth;
+  document.addEventListener('mousemove', resize);
+  document.addEventListener('mouseup', stopResize);
+};
+
+const resize = (e) => {
+  if (!isResizing) return;
+  const newWidth = startWidth - (e.clientX - startX);
+  const clampedWidth = Math.max(200, Math.min(window.innerWidth * 0.9, newWidth));
+  els.adminPanel.style.width = `${clampedWidth}px`;
+};
+
+const stopResize = () => {
+  isResizing = false;
+  document.removeEventListener('mousemove', resize);
+  document.removeEventListener('mouseup', stopResize);
+};
+
+els.adminPanel.addEventListener('mousedown', (e) => {
+  if (e.offsetX < 10) { // Left edge
+    startResize(e);
+  }
+});
 
 const loadViewerPrefs = () => {
   const raw = localStorage.getItem(VIEWER_PREFS_KEY);
@@ -1637,35 +1670,6 @@ const loadViewerPrefs = () => {
 
 const saveViewerPrefs = () => {
   localStorage.setItem(VIEWER_PREFS_KEY, JSON.stringify(state.viewerPrefs));
-};
-
-const loadSavedCreds = () => {
-  const raw = localStorage.getItem(SAVED_CREDS_KEY);
-  if (!raw) return;
-  try {
-    const c = JSON.parse(raw);
-    if (c && typeof c.user === 'string') els.loginUser.value = c.user;
-    if (c && typeof c.pass === 'string') els.loginPass.value = c.pass;
-  } catch {
-    // ignore
-  }
-};
-
-const saveCreds = () => {
-  localStorage.setItem(SAVED_CREDS_KEY, JSON.stringify({ user: els.loginUser.value, pass: els.loginPass.value }));
-  els.loginHint.textContent = 'Данные сохранены в этом браузере.';
-};
-
-const tryLogin = () => {
-  const u = els.loginUser.value;
-  const p = els.loginPass.value;
-  if (u === ADMIN_LOGIN && p === ADMIN_PASSWORD) {
-    els.loginHint.textContent = '';
-    openAdmin();
-    return true;
-  }
-  els.loginHint.textContent = 'Неверный логин или пароль.';
-  return false;
 };
 
 const syncSiteBgUi = () => {
@@ -1800,33 +1804,26 @@ const init = async () => {
   applySite();
   refreshGitHubMetaAsync();
 
-  // Viewer settings + admin login modal
+  // Open admin panel if in admin mode
   els.openLoginBtn.addEventListener('click', () => {
-    els.loginHint.textContent = '';
-    els.viewerColor.value = state.viewerPrefs.bgColor ?? '#0b0b10';
-    loadSavedCreds();
-    els.loginModal.showModal();
-  });
-  els.viewerColor.addEventListener('input', () => {
-    state.viewerPrefs.bgColor = els.viewerColor.value;
-    saveViewerPrefs();
-    render();
-  });
-  els.viewerColorResetBtn.addEventListener('click', () => {
-    state.viewerPrefs.bgColor = null;
-    saveViewerPrefs();
-    render();
-  });
-  els.saveCredsBtn.addEventListener('click', saveCreds);
-  els.loginModal.addEventListener('close', () => {
-    if (els.loginModal.returnValue !== 'ok') return;
-    const ok = tryLogin();
-    if (!ok) {
-      els.loginModal.showModal();
+    if (state.isAdmin) {
+      openAdmin();
     }
   });
 
   els.closeAdminBtn.addEventListener('click', closeAdmin);
+
+  // Mode switch
+  els.modeSwitch.addEventListener('change', () => {
+    state.isAdmin = els.modeSwitch.checked;
+    els.modeLabel.textContent = state.isAdmin ? 'Режим администратора' : 'Режим пользователя';
+    if (state.isAdmin) {
+      openAdmin();
+    } else {
+      closeAdmin();
+    }
+    render();
+  });
 
   // Site title/subtitle (admin)
   els.adminSiteTitle.addEventListener('input', () => {
@@ -2011,8 +2008,42 @@ const init = async () => {
 
   syncSiteBgUi();
   render();
+
+  // Initialize mode switch
+  els.modeSwitch.checked = state.isAdmin;
+  els.modeLabel.textContent = state.isAdmin ? 'Режим администратора' : 'Режим пользователя';
 };
 
 init();
+
+// Admin panel resize functionality
+let isResizing = false;
+let startX = 0;
+let startWidth = 0;
+
+els.adminResizeHandle.addEventListener('mousedown', (e) => {
+  isResizing = true;
+  startX = e.clientX;
+  startWidth = els.adminPanel.offsetWidth;
+  document.body.style.cursor = 'ew-resize';
+  document.body.style.userSelect = 'none';
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isResizing) return;
+  const newWidth = startWidth - (e.clientX - startX);
+  const minWidth = window.innerWidth * 0.1;
+  const maxWidth = window.innerWidth * 0.9;
+  const clampedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+  els.adminPanel.style.width = `${clampedWidth}px`;
+});
+
+document.addEventListener('mouseup', () => {
+  if (isResizing) {
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+});
 
 
