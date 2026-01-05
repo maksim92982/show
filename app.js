@@ -511,7 +511,6 @@ const syncAddModalUi = () => {
   els.addTextRow.hidden = !showText;
   els.addImageRow.hidden = !showMedia;
   els.addImage.accept = t === 'video' ? 'video/*' : 'image/*';
-};
   els.addMapRow.hidden = t !== 'map';
   els.addBookingRow.hidden = t !== 'booking';
   els.addButtonRow.hidden = t !== 'button';
