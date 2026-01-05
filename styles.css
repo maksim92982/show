@@ -521,6 +521,7 @@ input:checked + .slider:before {
   flex-direction: column;
   gap: 12px;
   flex: 1;
+  max-height: calc(100vh - 60px);
 }
 
 .panelBlock {
