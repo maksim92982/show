@@ -505,9 +505,12 @@ const openAddModal = index => {
   els.addContactsAddress.value = '';
   els.addContactsInstagram.value = '';
   els.addSpacerHeight.value = '24';
+  console.log('setting display flex and block');
   syncAddModalUi();
   els.addModal.style.display = 'flex';
   els.addModalBackdrop.style.display = 'block';
+  console.log('modal should be visible now');
+  els.addModal.focus();
 };
 
 const syncAddModalUi = () => {
@@ -2045,6 +2048,7 @@ const init = async () => {
   };
 
   els.addModalBackdrop.addEventListener('click', closeAddModal);
+  els.addConfirmBtn.addEventListener('click', () => console.log('addConfirmBtn clicked'));
 
   // Merge
   els.mergeBtn.addEventListener('click', openMergeModal);
