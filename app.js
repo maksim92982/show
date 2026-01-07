@@ -1928,16 +1928,18 @@ const init = async () => {
     state.addImageDataUrl = await readFileAsDataUrlAsync(file);
   });
 
-  els.addForm.addEventListener('submit', (e) => {
-    console.log('addForm submit event fired');
-    e.preventDefault();
-    const submitter = /** @type {HTMLButtonElement} */ (e.submitter);
-    console.log('addForm submit', submitter?.value);
-    if (submitter && submitter.value !== 'ok') {
-      console.log('submitter value not ok, closing modal');
-      closeAddModal();
-      return;
-    }
+els.addForm.addEventListener('submit', (e) => {
+  console.log('addForm submit event fired');
+  e.preventDefault();
+  
+  const submitter = /** @type {HTMLButtonElement} */ (e.submitter);
+  console.log('addForm submit', submitter?.value);
+  
+  if (submitter && submitter.value !== 'ok') {
+    console.log('submitter value not ok, closing modal');
+    closeAddModal();
+    return;
+  }
     const type = /** @type {TBlockType} */ (els.addType.value);
     const textValue = els.addText.value.trim();
     const media = state.addImageDataUrl;
@@ -1992,52 +1994,48 @@ const init = async () => {
 
     /** @type {IBlock} */
     const block = {
-      id: uid(),
-      type,
-      align: 'left',
-      background: defaultBackground(),
-      text: type === 'text' || type === 'mixed' ? { value: textValue, style: defaultTextStyle() } : null,
-      image: type === 'image' || type === 'mixed' ? { src: media || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
-      video: type === 'video' ? { src: media || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
-      grid: null,
-      map:
-        type === 'map'
-          ? { lat: Number(els.addMapLat.value), lon: Number(els.addMapLon.value), zoom: Number(els.addMapZoom.value || '16') }
-          : null,
-      booking:
-        type === 'booking'
-          ? {
-              title: els.addBookingTitle.value.trim() || 'Запись на приём',
-              slotMinutes: 60,
-              days: [
-                { dow: 1, start: '10:00', end: '18:00' },
-                { dow: 2, start: '10:00', end: '18:00' },
-                { dow: 3, start: '10:00', end: '18:00' },
-                { dow: 4, start: '10:00', end: '18:00' },
-                { dow: 5, start: '10:00', end: '18:00' },
-              ],
-            }
-          : null,
-      button:
-        type === 'button'
-          ? { label: els.addButtonLabel.value.trim(), url: els.addButtonUrl.value.trim() }
-          : null,
-      spacer: type === 'spacer' ? { height: Number(els.addSpacerHeight.value || '24') } : null,
-      contacts:
-        type === 'contacts'
-          ? {
-              title: els.addContactsTitle.value.trim() || 'Контакты',
-              phone: els.addContactsPhone.value.trim(),
-              address: els.addContactsAddress.value.trim(),
-              instagram: els.addContactsInstagram.value.trim(),
-            }
-          : null,
-    };
-    console.log('About to call insertBlock with block:', block);
-    insertBlock(block);
-    console.log('insertBlock called, closing modal');
-    closeAddModal();
-  });
+    id: uid(),
+    type,
+    align: 'left',
+    background: defaultBackground(),
+    text: type === 'text' || type === 'mixed' ? { value: textValue, style: defaultTextStyle() } : null,
+    image: type === 'image' || type === 'mixed' ? { src: media || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
+    video: type === 'video' ? { src: media || '', alt: els.addImage.files?.[0]?.name ?? '' } : null,
+    grid: null,
+    map: type === 'map' ? {
+      lat: Number(els.addMapLat.value),
+      lon: Number(els.addMapLon.value),
+      zoom: Number(els.addMapZoom.value || '16')
+    } : null,
+    booking: type === 'booking' ? {
+      title: els.addBookingTitle.value.trim() || 'Запись на приём',
+      slotMinutes: 60,
+      days: [
+        { dow: 1, start: '10:00', end: '18:00' },
+        { dow: 2, start: '10:00', end: '18:00' },
+        { dow: 3, start: '10:00', end: '18:00' },
+        { dow: 4, start: '10:00', end: '18:00' },
+        { dow: 5, start: '10:00', end: '18:00' },
+      ],
+    } : null,
+    button: type === 'button' ? {
+      label: els.addButtonLabel.value.trim(),
+      url: els.addButtonUrl.value.trim()
+    } : null,
+    spacer: type === 'spacer' ? { height: Number(els.addSpacerHeight.value || '24') } : null,
+    contacts: type === 'contacts' ? {
+      title: els.addContactsTitle.value.trim() || 'Контакты',
+      phone: els.addContactsPhone.value.trim(),
+      address: els.addContactsAddress.value.trim(),
+      instagram: els.addContactsInstagram.value.trim(),
+    } : null,
+  };
+  
+  console.log('About to call insertBlock with block:', block);
+  insertBlock(block);
+  console.log('insertBlock called, closing modal');
+  closeAddModal();
+});
 
   const closeAddModal = () => {
     console.log('closeAddModal called');
