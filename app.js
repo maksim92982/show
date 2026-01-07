@@ -1929,15 +1929,15 @@ const init = async () => {
     state.addImageDataUrl = await readFileAsDataUrlAsync(file);
   });
 // ДОБАВЬТЕ ЭТОТ ОБРАБОТЧИК в правильное место (после инициализации addType и addImage):
-els.addForm.addEventListener('submit', (e) => {
-  console.log('addForm submit event fired');
-  e.preventDefault();
+els.addModal.addEventListener('close', () => {
+  console.log('addModal close event fired, returnValue:', els.addModal.returnValue);
+  
+  if (els.addModal.returnValue !== 'ok') return;
   
   const type = /** @type {TBlockType} */ (els.addType.value);
   const textValue = els.addText.value.trim();
   const media = state.addImageDataUrl;
 
-  // Проверки для разных типов блоков
   if ((type === 'text' || type === 'mixed') && !textValue) {
     alert('Введите текст.');
     return;
@@ -1955,8 +1955,7 @@ els.addForm.addEventListener('submit', (e) => {
       return;
     }
   }
-  // ... остальные проверки ...
-
+  
   // Создание полного блока
   const block = {
     id: uid(),
@@ -1972,12 +1971,11 @@ els.addForm.addEventListener('submit', (e) => {
       lon: Number(els.addMapLon.value),
       zoom: Number(els.addMapZoom.value || '16')
     } : null,
-    // ... остальные поля для button, contacts, spacer и т.д.
+    // ... добавьте остальные поля для button, contacts, spacer и т.д.
   };
   
   console.log('Creating block:', block);
   insertBlock(block);
-  closeAddModal();
 });
 
 
