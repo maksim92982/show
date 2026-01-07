@@ -1,207 +1,26 @@
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Булочки & Тортики</title>
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div id="siteBackground" class="siteBackground" aria-hidden="true"></div>
-
-    <div class="modeToggle">
-      <label class="switch">
-        <input type="checkbox" id="modeSwitch">
-        <span class="slider"></span>
-      </label>
-      <span class="modeLabel" id="modeLabel">Режим пользователя</span>
-    </div>
-
-    <button class="cornerSquare" id="openLoginBtn" type="button" title="Настройки"></button>
-
-    <main class="main">
-      <div class="container">
-        <section class="hero" aria-label="Заголовок">
-          <div class="hero__title" id="siteTitle">Булочки & Тортики</div>
-          <div class="hero__subtitle" id="siteSubtitle">Домашняя выпечка на заказ</div>
-        </section>
-
-        <section class="editor" aria-label="Контент">
-          <div id="blocksRoot"></div>
-        </section>
-      </div>
-    </main>
-
-  <aside class="adminPanel" id="adminPanel" data-open="false">
+<!-- ТРЕТИЙ ДИАЛОГ: mergeModal (ОТДЕЛЬНО!) -->
+<dialog class="modal" id="mergeModal">
+  <form method="dialog" class="modal__card">
+    <div class="modal__title">Объединение в таблицу</div>
     
-  <div id="adminResizeHandle" class="adminResizeHandle" title="Изменить ширину"></div>
-
-      <div class="adminPanel__header">
-        <div class="adminPanel__title">Админ-панель</div>
-        <button class="btn btn--ghost" id="closeAdminBtn" type="button">Закрыть</button>
+    <div class="panelBlock">
+      <div class="panelBlock__title">Размер таблицы</div>
+      <div class="panelRow">
+        <label class="label">Колонки</label>
+        <input class="input" type="number" min="1" max="6" step="1" id="mergeCols" value="2" />
       </div>
-
-      <div class="adminPanel__body">
-        <div class="panelBlock">
-          <div class="panelBlock__title">Заголовок сайта</div>
-          <div class="panelRow">
-            <label class="label" for="adminSiteTitle">Заголовок</label>
-            <input class="input" id="adminSiteTitle" type="text" />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="adminSiteSubtitle">Подзаголовок</label>
-            <input class="input" id="adminSiteSubtitle" type="text" />
-          </div>
-          <div class="miniText">Меняется сразу на странице и попадёт в export `content.json`.</div>
-        </div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Публикация</div>
-          <div class="panelRow">
-            <button class="btn" id="exportBtn" type="button">Скачать content.json</button>
-          </div>
-          <div class="panelRow">
-            <button class="btn" id="publishBtn" type="button">Опубликовать в GitHub</button>
-          </div>
-          <div class="panelBlock" style="margin-top: 10px;">
-            <div class="panelBlock__title">GitHub</div>
-            <div class="miniText" id="githubMeta">owner/repo@branch: —</div>
-            <div class="panelRow" style="margin-top: 8px;">
-              <button class="btn btn--ghost" id="githubTestBtn" type="button">Проверить подключение</button>
-            </div>
-          </div>
-          <div class="panelRow">
-            <label class="fileBtn">
-              Загрузить content.json
-              <input id="importInput" type="file" accept="application/json" />
-            </label>
-          </div>
-          <div class="miniText" id="publishStatus"></div>
-          <div class="panelRow">
-            <button class="btn btn--danger" id="resetBtn" type="button">Сбросить локальные правки</button>
-          </div>
-        </div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Фон сайта</div>
-
-          <div class="panelRow">
-            <label class="label">Режим</label>
-            <select class="select" id="siteBgMode">
-              <option value="solid">Цвет</option>
-              <option value="gradient">Градиент</option>
-              <option value="image">Картинка</option>
-            </select>
-          </div>
-
-          <div class="panelRow" id="siteBgSolidRow">
-            <label class="label">Цвет</label>
-            <input id="siteBgColor" type="color" />
-          </div>
-
-          <div class="panelRow panelRow--col" id="siteBgGradientRow" hidden>
-            <div class="panelRow">
-              <label class="label">От</label>
-              <input id="siteBgGradFrom" type="color" />
-            </div>
-            <div class="panelRow">
-              <label class="label">До</label>
-              <input id="siteBgGradTo" type="color" />
-            </div>
-            <div class="panelRow">
-              <label class="label">Угол</label>
-              <input id="siteBgGradAngle" type="range" min="0" max="360" step="1" />
-              <span class="miniText" id="siteBgGradAngleLabel">0°</span>
-            </div>
-            <div class="bgPreview" id="siteBgPreview" aria-label="Превью градиента"></div>
-          </div>
-
-          <div class="panelRow" id="siteBgImageRow" hidden>
-            <label class="fileBtn">
-              Выбрать картинку фона
-              <input id="siteBgImageInput" type="file" accept="image/*" />
-            </label>
-          </div>
-        </div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Выделение и таблица</div>
-          <div class="panelRow">
-            <button class="btn" id="mergeBtn" type="button">Объединить выделенные в таблицу</button>
-          </div>
-          <div class="miniText">
-            Выделяйте чекбоксами соседние блоки (2+), затем объединяйте.
-          </div>
-        </div>
+      <div class="panelRow">
+        <label class="label">Строки</label>
+        <input class="input" type="number" min="1" max="6" step="1" id="mergeRows" value="2" />
       </div>
-    </aside>
-
-    <!-- ПЕРВЫЙ ДИАЛОГ: loginModal -->
-    <dialog class="modal" id="loginModal">
-      <form method="dialog" class="modal__card">
-        <div class="modal__title">Настройки</div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Цвет (локально в этом браузере)</div>
-          <div class="panelRow">
-            <label class="label">Цвет</label>
-            <input id="viewerColor" type="color" />
-            <button class="btn btn--ghost" id="viewerColorResetBtn" type="button">Сбросить</button>
-          </div>
-          <div class="miniText">Этот цвет не публикуется — это только для вашего браузера.</div>
-        </div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Вход администратора</div>
-
-          <div class="panelRow">
-            <label class="label" for="loginUser">Логин</label>
-            <input class="input" id="loginUser" type="text" autocomplete="username" />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="loginPass">Пароль</label>
-            <input class="input" id="loginPass" type="password" autocomplete="current-password" />
-          </div>
-
-          <div class="panelRow panelRow--actions">
-            <button class="btn btn--ghost" id="saveCredsBtn" type="button">Сохранить</button>
-            <button class="btn" id="loginBtn" value="ok" type="submit">Войти</button>
-          </div>
-          <div class="miniText" id="loginHint"></div>
-        </div>
-
-        <div class="panelRow panelRow--actions">
-          <button class="btn btn--ghost" value="cancel" type="submit">Закрыть</button>
-        </div>
-      </form>
-    </dialog> <!-- ЗАКРЫТИЕ loginModal -->
-
-    <!-- ВТОРОЙ ДИАЛОГ: addModal (ОТДЕЛЬНО!) -->
-    <dialog class="modal" id="addModal">
-      <form method="dialog" class="modal__card" id="addForm">
-        <div class="modal__title">Добавить блок</div>
-
-        <!-- ... содержимое addModal ... -->
-
-        <div class="panelRow panelRow--actions">
-          <button class="btn btn--ghost" value="cancel" type="submit">Отмена</button>
-          <button class="btn" id="addConfirmBtn" value="ok" type="submit">Добавить</button>
-        </div>
-      </form>
-    </dialog> <!-- ЗАКРЫТИЕ addModal -->
-
-    <!-- ТРЕТИЙ ДИАЛОГ: mergeModal (ОТДЕЛЬНО!) -->
-    <dialog class="modal" id="mergeModal">
-      <form method="dialog" class="modal__card">
-        <div class="modal__title">Объединение в таблицу</div>
-        <!-- ... содержимое mergeModal ... -->
-        <div class="panelRow panelRow--actions">
-          <button class="btn btn--ghost" value="cancel" type="submit">Отмена</button>
-          <button class="btn" id="mergeConfirmBtn" value="ok" type="submit">Объединить</button>
-        </div>
-      </form>
-    </dialog> <!-- ЗАКРЫТИЕ mergeModal -->
-
-    <script src="./app.js" defer></script>
-  </body>
-</html>
+      <div class="miniText">
+        Блоки будут размещены в таблице слева направо, сверху вниз.
+      </div>
+    </div>
+    
+    <div class="panelRow panelRow--actions">
+      <button class="btn btn--ghost" value="cancel" type="submit">Отмена</button>
+      <button class="btn" id="mergeConfirmBtn" value="ok" type="submit">Объединить</button>
+    </div>
+  </form>
+</dialog>
