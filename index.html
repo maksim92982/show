@@ -33,107 +33,10 @@
     </main>
 
     <aside class="adminPanel" id="adminPanel" data-open="false">
-      <div class="adminPanel__resizeHandle" id="adminResizeHandle"></div>
-      <div class="adminPanel__header">
-        <div class="adminPanel__title">Админ-панель</div>
-        <button class="btn btn--ghost" id="closeAdminBtn" type="button">Закрыть</button>
-      </div>
-
-      <div class="adminPanel__body">
-        <div class="panelBlock">
-          <div class="panelBlock__title">Заголовок сайта</div>
-          <div class="panelRow">
-            <label class="label" for="adminSiteTitle">Заголовок</label>
-            <input class="input" id="adminSiteTitle" type="text" />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="adminSiteSubtitle">Подзаголовок</label>
-            <input class="input" id="adminSiteSubtitle" type="text" />
-          </div>
-          <div class="miniText">Меняется сразу на странице и попадёт в export `content.json`.</div>
-        </div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Публикация</div>
-          <div class="panelRow">
-            <button class="btn" id="exportBtn" type="button">Скачать content.json</button>
-          </div>
-          <div class="panelRow">
-            <button class="btn" id="publishBtn" type="button">Опубликовать в GitHub</button>
-          </div>
-          <div class="panelBlock" style="margin-top: 10px;">
-            <div class="panelBlock__title">GitHub</div>
-            <div class="miniText" id="githubMeta">owner/repo@branch: —</div>
-            <div class="panelRow" style="margin-top: 8px;">
-              <button class="btn btn--ghost" id="githubTestBtn" type="button">Проверить подключение</button>
-            </div>
-          </div>
-          <div class="panelRow">
-            <label class="fileBtn">
-              Загрузить content.json
-              <input id="importInput" type="file" accept="application/json" />
-            </label>
-          </div>
-          <div class="miniText" id="publishStatus"></div>
-          <div class="panelRow">
-            <button class="btn btn--danger" id="resetBtn" type="button">Сбросить локальные правки</button>
-          </div>
-        </div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Фон сайта</div>
-
-          <div class="panelRow">
-            <label class="label">Режим</label>
-            <select class="select" id="siteBgMode">
-              <option value="solid">Цвет</option>
-              <option value="gradient">Градиент</option>
-              <option value="image">Картинка</option>
-            </select>
-          </div>
-
-          <div class="panelRow" id="siteBgSolidRow">
-            <label class="label">Цвет</label>
-            <input id="siteBgColor" type="color" />
-          </div>
-
-          <div class="panelRow panelRow--col" id="siteBgGradientRow" hidden>
-            <div class="panelRow">
-              <label class="label">От</label>
-              <input id="siteBgGradFrom" type="color" />
-            </div>
-            <div class="panelRow">
-              <label class="label">До</label>
-              <input id="siteBgGradTo" type="color" />
-            </div>
-            <div class="panelRow">
-              <label class="label">Угол</label>
-              <input id="siteBgGradAngle" type="range" min="0" max="360" step="1" />
-              <span class="miniText" id="siteBgGradAngleLabel">0°</span>
-            </div>
-            <div class="bgPreview" id="siteBgPreview" aria-label="Превью градиента"></div>
-          </div>
-
-          <div class="panelRow" id="siteBgImageRow" hidden>
-            <label class="fileBtn">
-              Выбрать картинку фона
-              <input id="siteBgImageInput" type="file" accept="image/*" />
-            </label>
-          </div>
-        </div>
-
-        <div class="panelBlock">
-          <div class="panelBlock__title">Выделение и таблица</div>
-          <div class="panelRow">
-            <button class="btn" id="mergeBtn" type="button">Объединить выделенные в таблицу</button>
-          </div>
-          <div class="miniText">
-            Выделяйте чекбоксами соседние блоки (2+), затем объединяйте.
-          </div>
-        </div>
-      </div>
+      <!-- ... содержимое adminPanel ... -->
     </aside>
 
+    <!-- ПЕРВЫЙ ДИАЛОГ: loginModal -->
     <dialog class="modal" id="loginModal">
       <form method="dialog" class="modal__card">
         <div class="modal__title">Настройки</div>
@@ -171,135 +74,34 @@
           <button class="btn btn--ghost" value="cancel" type="submit">Закрыть</button>
         </div>
       </form>
-<dialog class="modal" id="addModal">
-  <form method="dialog" class="modal__card" id="addForm">
+    </dialog> <!-- ЗАКРЫТИЕ loginModal -->
+
+    <!-- ВТОРОЙ ДИАЛОГ: addModal (ОТДЕЛЬНО!) -->
+    <dialog class="modal" id="addModal">
+      <form method="dialog" class="modal__card" id="addForm">
         <div class="modal__title">Добавить блок</div>
 
-        <div class="panelRow">
-          <label class="label">Тип</label>
-          <select class="select" id="addType">
-            <option value="text">Текст</option>
-            <option value="image">Фото</option>
-            <option value="video">Видео</option>
-            <option value="mixed">Текст + фото</option>
-            <option value="map">Карта</option>
-            <option value="booking">Запись / календарь</option>
-            <option value="button">Кнопка / ссылка</option>
-            <option value="contacts">Контакты</option>
-            <option value="divider">Разделитель</option>
-            <option value="spacer">Отступ</option>
-          </select>
-        </div>
-
-        <div class="panelRow panelRow--col" id="addTextRow">
-          <label class="label">Текст</label>
-          <textarea class="textarea" id="addText" rows="5" placeholder="Например: Сегодня свежие булочки с корицей..."></textarea>
-        </div>
-
-        <div class="panelRow" id="addImageRow">
-          <label class="fileBtn">
-            Выбрать фото
-            <input id="addImage" type="file" accept="image/*" />
-          </label>
-          <span class="miniText" id="addImageName">файл не выбран</span>
-        </div>
-
-        <div class="panelRow panelRow--col" id="addMapRow" hidden>
-          <div class="miniText">Карта работает без ключей через OpenStreetMap. Введите координаты.</div>
-          <div class="panelRow">
-            <label class="label" for="addMapLat">Широта</label>
-            <input class="input" id="addMapLat" type="number" step="0.000001" placeholder="55.751244" />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="addMapLon">Долгота</label>
-            <input class="input" id="addMapLon" type="number" step="0.000001" placeholder="37.618423" />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="addMapZoom">Зум</label>
-            <input class="input" id="addMapZoom" type="number" min="1" max="18" step="1" value="16" />
-          </div>
-        </div>
-
-        <div class="panelRow panelRow--col" id="addBookingRow" hidden>
-          <div class="miniText">
-            Блок “Запись” покажет пользователю слоты по расписанию, а заявка будет отправлена администратору (например в Telegram).
-          </div>
-          <div class="panelRow">
-            <label class="label" for="addBookingTitle">Заголовок</label>
-            <input class="input" id="addBookingTitle" type="text" placeholder="Запись на приём" />
-          </div>
-        </div>
-
-        <div class="panelRow panelRow--col" id="addButtonRow" hidden>
-          <div class="panelRow">
-            <label class="label" for="addButtonLabel">Текст</label>
-            <input class="input" id="addButtonLabel" type="text" placeholder="Написать в WhatsApp" />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="addButtonUrl">Ссылка</label>
-            <input class="input" id="addButtonUrl" type="text" placeholder="https://..." />
-          </div>
-          <div class="miniText">Можно вставлять `https://`, `tel:+7...`, `mailto:...`</div>
-        </div>
-
-        <div class="panelRow panelRow--col" id="addContactsRow" hidden>
-          <div class="panelRow">
-            <label class="label" for="addContactsTitle">Заголовок</label>
-            <input class="input" id="addContactsTitle" type="text" placeholder="Контакты" />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="addContactsPhone">Телефон</label>
-            <input class="input" id="addContactsPhone" type="text" placeholder="+7..." />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="addContactsAddress">Адрес</label>
-            <input class="input" id="addContactsAddress" type="text" placeholder="Город, улица..." />
-          </div>
-          <div class="panelRow">
-            <label class="label" for="addContactsInstagram">Instagram</label>
-            <input class="input" id="addContactsInstagram" type="text" placeholder="@username или ссылка" />
-          </div>
-        </div>
-
-        <div class="panelRow panelRow--col" id="addSpacerRow" hidden>
-          <div class="panelRow">
-            <label class="label" for="addSpacerHeight">Высота (px)</label>
-            <input class="input" id="addSpacerHeight" type="number" min="4" step="1" value="24" />
-          </div>
-        </div>
+        <!-- ... содержимое addModal ... -->
 
         <div class="panelRow panelRow--actions">
           <button class="btn btn--ghost" value="cancel" type="submit">Отмена</button>
           <button class="btn" id="addConfirmBtn" value="ok" type="submit">Добавить</button>
         </div>
       </form>
-    </dialog>
+    </dialog> <!-- ЗАКРЫТИЕ addModal -->
 
+    <!-- ТРЕТИЙ ДИАЛОГ: mergeModal (ОТДЕЛЬНО!) -->
     <dialog class="modal" id="mergeModal">
       <form method="dialog" class="modal__card">
         <div class="modal__title">Объединение в таблицу</div>
-        <div class="miniText">
-          Введите ширину (колонки) и высоту (строки). Произведение должно быть ≥ количеству выделенных блоков.
-        </div>
-
-        <div class="panelRow">
-          <label class="label">Колонки</label>
-          <input class="input" id="mergeCols" type="number" min="1" step="1" value="2" />
-        </div>
-        <div class="panelRow">
-          <label class="label">Строки</label>
-          <input class="input" id="mergeRows" type="number" min="1" step="1" value="2" />
-        </div>
-
+        <!-- ... содержимое mergeModal ... -->
         <div class="panelRow panelRow--actions">
           <button class="btn btn--ghost" value="cancel" type="submit">Отмена</button>
           <button class="btn" id="mergeConfirmBtn" value="ok" type="submit">Объединить</button>
         </div>
       </form>
-    </dialog>
+    </dialog> <!-- ЗАКРЫТИЕ mergeModal -->
 
     <script src="./app.js" defer></script>
   </body>
 </html>
-
-
