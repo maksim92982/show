@@ -161,6 +161,7 @@ const normalizeBlock = raw => {
   const type =
     b.type === 'text' ||
     b.type === 'image' ||
+    b.type === 'video' || 
     b.type === 'mixed' ||
     b.type === 'grid' ||
     b.type === 'map' ||
@@ -1927,73 +1928,37 @@ const init = async () => {
     els.addImageName.textContent = file.name;
     state.addImageDataUrl = await readFileAsDataUrlAsync(file);
   });
-
+// ДОБАВЬТЕ ЭТОТ ОБРАБОТЧИК в правильное место (после инициализации addType и addImage):
 els.addForm.addEventListener('submit', (e) => {
   console.log('addForm submit event fired');
   e.preventDefault();
   
-  const submitter = /** @type {HTMLButtonElement} */ (e.submitter);
-  console.log('addForm submit', submitter?.value);
-  
-  if (submitter && submitter.value !== 'ok') {
-    console.log('submitter value not ok, closing modal');
-    closeAddModal();
+  const type = /** @type {TBlockType} */ (els.addType.value);
+  const textValue = els.addText.value.trim();
+  const media = state.addImageDataUrl;
+
+  // Проверки для разных типов блоков
+  if ((type === 'text' || type === 'mixed') && !textValue) {
+    alert('Введите текст.');
     return;
   }
-    const type = /** @type {TBlockType} */ (els.addType.value);
-    const textValue = els.addText.value.trim();
-    const media = state.addImageDataUrl;
-
-    if ((type === 'text' || type === 'mixed') && !textValue) {
-      alert('Введите текст.');
+  if ((type === 'image' || type === 'video' || type === 'mixed') && !media) {
+    alert('Выберите файл.');
+    return;
+  }
+  if (type === 'map') {
+    const lat = Number(els.addMapLat.value);
+    const lon = Number(els.addMapLon.value);
+    const zoom = Number(els.addMapZoom.value || '16');
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      alert('Введите корректные координаты (широта и долгота).');
       return;
     }
-    if ((type === 'image' || type === 'video' || type === 'mixed') && !media) {
-      alert('Выберите файл.');
-      return;
-    }
-    if (type === 'map') {
-      const lat = Number(els.addMapLat.value);
-      const lon = Number(els.addMapLon.value);
-      const zoom = Number(els.addMapZoom.value || '16');
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-        alert('Введите корректные координаты (широта и долгота).');
-        return;
-      }
-      if (!Number.isFinite(zoom) || zoom < 1 || zoom > 18) {
-        alert('Зум должен быть от 1 до 18.');
-        return;
-      }
-    }
-    if (type === 'button') {
-      const label = els.addButtonLabel.value.trim();
-      const url = els.addButtonUrl.value.trim();
-      if (!label) {
-        alert('Введите текст кнопки.');
-        return;
-      }
-      if (!url) {
-        alert('Введите ссылку для кнопки.');
-        return;
-      }
-    }
-    if (type === 'spacer') {
-      const h = Number(els.addSpacerHeight.value);
-      if (!Number.isFinite(h) || h < 0) {
-        alert('Введите высоту отступа (0+).');
-        return;
-      }
-    }
-    if (type === 'booking') {
-      const title = els.addBookingTitle.value.trim();
-      if (!title) {
-        alert('Введите заголовок для блока записи.');
-        return;
-      }
-    }
+  }
+  // ... остальные проверки ...
 
-    /** @type {IBlock} */
-    const block = {
+  // Создание полного блока
+  const block = {
     id: uid(),
     type,
     align: 'left',
@@ -2007,35 +1972,14 @@ els.addForm.addEventListener('submit', (e) => {
       lon: Number(els.addMapLon.value),
       zoom: Number(els.addMapZoom.value || '16')
     } : null,
-    booking: type === 'booking' ? {
-      title: els.addBookingTitle.value.trim() || 'Запись на приём',
-      slotMinutes: 60,
-      days: [
-        { dow: 1, start: '10:00', end: '18:00' },
-        { dow: 2, start: '10:00', end: '18:00' },
-        { dow: 3, start: '10:00', end: '18:00' },
-        { dow: 4, start: '10:00', end: '18:00' },
-        { dow: 5, start: '10:00', end: '18:00' },
-      ],
-    } : null,
-    button: type === 'button' ? {
-      label: els.addButtonLabel.value.trim(),
-      url: els.addButtonUrl.value.trim()
-    } : null,
-    spacer: type === 'spacer' ? { height: Number(els.addSpacerHeight.value || '24') } : null,
-    contacts: type === 'contacts' ? {
-      title: els.addContactsTitle.value.trim() || 'Контакты',
-      phone: els.addContactsPhone.value.trim(),
-      address: els.addContactsAddress.value.trim(),
-      instagram: els.addContactsInstagram.value.trim(),
-    } : null,
+    // ... остальные поля для button, contacts, spacer и т.д.
   };
   
-  console.log('About to call insertBlock with block:', block);
+  console.log('Creating block:', block);
   insertBlock(block);
-  console.log('insertBlock called, closing modal');
   closeAddModal();
 });
+
 
   const closeAddModal = () => {
     console.log('closeAddModal called');
@@ -2078,27 +2022,5 @@ els.addForm.addEventListener('submit', (e) => {
   // Дополнительный обработчик для кнопки "Добавить"
     // Дополнительный обработчик для кнопки "Добавить"
     // Дополнительный обработчик для кнопки "Добавить"
-  els.addConfirmBtn.addEventListener('click', (e) => {
-    console.log('addConfirmBtn clicked directly');
-    // Устанавливаем значение кнопки, чтобы обработчик формы знал, что это кнопка OK
-    els.addConfirmBtn.value = 'ok';
-    
-    // Триггерим submit формы
-    els.addForm.requestSubmit(els.addConfirmBtn);
-  });
-
-  // Обработчик закрытия модального окна по клику вне его
-  els.addModal.addEventListener('click', (e) => {
-    if (e.target === els.addModal) {
-      closeAddModal();
-    }
-  });
-
-  syncSiteBgUi();
-  render();
-
-  // Initialize mode switch
-  els.modeSwitch.checked = state.isAdmin;
-  els.modeLabel.textContent = state.isAdmin ? 'Режим администратора' : 'Режим пользователя';
 
 init();
