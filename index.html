@@ -32,8 +32,105 @@
       </div>
     </main>
 
-    <aside class="adminPanel" id="adminPanel" data-open="false">
-      <!-- ... содержимое adminPanel ... -->
+  <aside class="adminPanel" id="adminPanel" data-open="false">
+      <div class="adminPanel__header">
+        <div class="adminPanel__title">Админ-панель</div>
+        <button class="btn btn--ghost" id="closeAdminBtn" type="button">Закрыть</button>
+      </div>
+
+      <div class="adminPanel__body">
+        <div class="panelBlock">
+          <div class="panelBlock__title">Заголовок сайта</div>
+          <div class="panelRow">
+            <label class="label" for="adminSiteTitle">Заголовок</label>
+            <input class="input" id="adminSiteTitle" type="text" />
+          </div>
+          <div class="panelRow">
+            <label class="label" for="adminSiteSubtitle">Подзаголовок</label>
+            <input class="input" id="adminSiteSubtitle" type="text" />
+          </div>
+          <div class="miniText">Меняется сразу на странице и попадёт в export `content.json`.</div>
+        </div>
+
+        <div class="panelBlock">
+          <div class="panelBlock__title">Публикация</div>
+          <div class="panelRow">
+            <button class="btn" id="exportBtn" type="button">Скачать content.json</button>
+          </div>
+          <div class="panelRow">
+            <button class="btn" id="publishBtn" type="button">Опубликовать в GitHub</button>
+          </div>
+          <div class="panelBlock" style="margin-top: 10px;">
+            <div class="panelBlock__title">GitHub</div>
+            <div class="miniText" id="githubMeta">owner/repo@branch: —</div>
+            <div class="panelRow" style="margin-top: 8px;">
+              <button class="btn btn--ghost" id="githubTestBtn" type="button">Проверить подключение</button>
+            </div>
+          </div>
+          <div class="panelRow">
+            <label class="fileBtn">
+              Загрузить content.json
+              <input id="importInput" type="file" accept="application/json" />
+            </label>
+          </div>
+          <div class="miniText" id="publishStatus"></div>
+          <div class="panelRow">
+            <button class="btn btn--danger" id="resetBtn" type="button">Сбросить локальные правки</button>
+          </div>
+        </div>
+
+        <div class="panelBlock">
+          <div class="panelBlock__title">Фон сайта</div>
+
+          <div class="panelRow">
+            <label class="label">Режим</label>
+            <select class="select" id="siteBgMode">
+              <option value="solid">Цвет</option>
+              <option value="gradient">Градиент</option>
+              <option value="image">Картинка</option>
+            </select>
+          </div>
+
+          <div class="panelRow" id="siteBgSolidRow">
+            <label class="label">Цвет</label>
+            <input id="siteBgColor" type="color" />
+          </div>
+
+          <div class="panelRow panelRow--col" id="siteBgGradientRow" hidden>
+            <div class="panelRow">
+              <label class="label">От</label>
+              <input id="siteBgGradFrom" type="color" />
+            </div>
+            <div class="panelRow">
+              <label class="label">До</label>
+              <input id="siteBgGradTo" type="color" />
+            </div>
+            <div class="panelRow">
+              <label class="label">Угол</label>
+              <input id="siteBgGradAngle" type="range" min="0" max="360" step="1" />
+              <span class="miniText" id="siteBgGradAngleLabel">0°</span>
+            </div>
+            <div class="bgPreview" id="siteBgPreview" aria-label="Превью градиента"></div>
+          </div>
+
+          <div class="panelRow" id="siteBgImageRow" hidden>
+            <label class="fileBtn">
+              Выбрать картинку фона
+              <input id="siteBgImageInput" type="file" accept="image/*" />
+            </label>
+          </div>
+        </div>
+
+        <div class="panelBlock">
+          <div class="panelBlock__title">Выделение и таблица</div>
+          <div class="panelRow">
+            <button class="btn" id="mergeBtn" type="button">Объединить выделенные в таблицу</button>
+          </div>
+          <div class="miniText">
+            Выделяйте чекбоксами соседние блоки (2+), затем объединяйте.
+          </div>
+        </div>
+      </div>
     </aside>
 
     <!-- ПЕРВЫЙ ДИАЛОГ: loginModal -->
