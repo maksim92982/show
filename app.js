@@ -2042,7 +2042,6 @@ els.addForm.addEventListener('submit', (e) => {
     els.addModal.close();
   };
 
-  els.addConfirmBtn.addEventListener('click', () => console.log('addConfirmBtn clicked'));
 
   // Merge
   els.mergeBtn.addEventListener('click', openMergeModal);
@@ -2075,5 +2074,31 @@ els.addForm.addEventListener('submit', (e) => {
   els.modeSwitch.checked = state.isAdmin;
   els.modeLabel.textContent = state.isAdmin ? 'Режим администратора' : 'Режим пользователя';
 };
+
+  // Дополнительный обработчик для кнопки "Добавить"
+    // Дополнительный обработчик для кнопки "Добавить"
+    // Дополнительный обработчик для кнопки "Добавить"
+  els.addConfirmBtn.addEventListener('click', (e) => {
+    console.log('addConfirmBtn clicked directly');
+    // Устанавливаем значение кнопки, чтобы обработчик формы знал, что это кнопка OK
+    els.addConfirmBtn.value = 'ok';
+    
+    // Триггерим submit формы
+    els.addForm.requestSubmit(els.addConfirmBtn);
+  });
+
+  // Обработчик закрытия модального окна по клику вне его
+  els.addModal.addEventListener('click', (e) => {
+    if (e.target === els.addModal) {
+      closeAddModal();
+    }
+  });
+
+  syncSiteBgUi();
+  render();
+
+  // Initialize mode switch
+  els.modeSwitch.checked = state.isAdmin;
+  els.modeLabel.textContent = state.isAdmin ? 'Режим администратора' : 'Режим пользователя';
 
 init();
